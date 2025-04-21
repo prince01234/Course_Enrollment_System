@@ -11,7 +11,7 @@ public class User {
     private String password; 
     private String address;
     private String phoneNumber;
-    // private String profileImageUrl; 
+    private byte[] profilePicture;
     private Role role = Role.USER;
     
     public User() {
@@ -19,7 +19,7 @@ public class User {
     
     public User(int userId, String firstName, String lastName, String username, 
                 String email, String password, String address,
-                String phoneNumber, Role role) {
+                String phoneNumber, byte[] profilePicture, Role role) {
         this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -28,14 +28,14 @@ public class User {
         this.password = password;
         this.address = address;
         this.phoneNumber = phoneNumber;
-        //  this.profileImageUrl = profileImageUrl;
+        this.profilePicture = profilePicture;
         this.role = role;
     }
 
     // Constructor without ID for creating new users
     public User(String firstName, String lastName, String username, 
                 String email, String password, String address,
-                String phoneNumber, Role role) {
+                String phoneNumber, byte[] profilePicture, Role role) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.username = username;
@@ -43,6 +43,7 @@ public class User {
         this.password = password;
         this.address = address;
         this.phoneNumber = phoneNumber;
+        this.profilePicture = profilePicture;
         this.role = role;
     }
 
@@ -111,15 +112,13 @@ public class User {
         this.phoneNumber = phoneNumber;
     }
     
-    /* 
-    public String getProfileImageUrl() {
-        return profileImageUrl;
+    public byte[] getProfilePicture() {
+        return profilePicture;
     }
 
-    public void setProfileImageUrl(String profileImageUrl) {
-        this.profileImageUrl = profileImageUrl;
+    public void setProfilePicture(byte[] profilePicture) {
+        this.profilePicture = profilePicture;
     }
-    */
 
     public Role getRole() {
         return role;
