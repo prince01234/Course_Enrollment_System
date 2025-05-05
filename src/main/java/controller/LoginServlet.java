@@ -11,14 +11,14 @@ import dao.UserDAO;
 @WebServlet(name = "LoginServlet", value = "/LoginServlet")
 public class LoginServlet extends HttpServlet {
 
-	private static final long serialVersionUID = 1L;
-	
-	
-	private static final String REMEMBER_ME_COOKIE_NAME = "rememberMe";
+    private static final long serialVersionUID = 1L;
+
+    private static final String REMEMBER_ME_COOKIE_NAME = "rememberMe";
     private static final int COOKIE_MAX_AGE = 30 * 60; // 30mins in seconds
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         // Check if user is already logged in via remember me cookie
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
@@ -34,7 +34,7 @@ public class LoginServlet extends HttpServlet {
                             HttpSession session = request.getSession();
                             session.setAttribute("user", user);
                             session.setAttribute("loggedIn", true);
-                            response.sendRedirect(request.getContextPath() + "/");
+                            response.sendRedirect(request.getContextPath() + "/pages/student/student_dashboard.jsp");
                             return;
                         }
                     }
@@ -47,22 +47,31 @@ public class LoginServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         // Get form parameters
         String usernameOrEmail = request.getParameter("username");
+        if (usernameOrEmail == null || usernameOrEmail.trim().isEmpty()) {
+            usernameOrEmail = request.getParameter("email");
+        }
         String password = request.getParameter("password");
         String rememberMe = request.getParameter("rememberMe");
 
         // Validate input
-        if (usernameOrEmail == null || usernameOrEmail.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+        if (usernameOrEmail == null || usernameOrEmail.trim().isEmpty() || password == null
+                || password.trim().isEmpty()) {
             request.setAttribute("error", "Username/email and password are required");
             request.getRequestDispatcher("/pages/public/login.jsp").forward(request, response);
+            System.out.println("input not valid");
             return;
         }
 
         // Authenticate user
-        User user = UserDAO.validateUser(usernameOrEmail, password);
+        System.out.println("Authenticating user: " + usernameOrEmail);
+        System.out.println("Password: " + password);
 
+        User user = UserDAO.validateUser(usernameOrEmail, password);
+        System.out.println(user);
         if (user != null) {
             // Authentication successful
             HttpSession session = request.getSession();
@@ -77,13 +86,15 @@ public class LoginServlet extends HttpServlet {
                 rememberMeCookie.setPath(request.getContextPath());
                 response.addCookie(rememberMeCookie);
             }
-
+            System.out.println("Student dashboard");
             // Redirect to homepage
-            response.sendRedirect(request.getContextPath() + "/");
+            response.sendRedirect(request.getContextPath() + "/pages/student/student_dashboard.jsp");
         } else {
             // Authentication failed
+            System.out.println("Authentication failed");
             request.setAttribute("error", "Invalid username/email or password");
             request.getRequestDispatcher("/pages/public/login.jsp").forward(request, response);
+
         }
     }
 

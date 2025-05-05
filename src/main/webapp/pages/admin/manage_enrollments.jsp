@@ -20,7 +20,7 @@
                 <ul>
                     <li>
                         <a href="<%= request.getContextPath() %>/pages/admin/admin_dashboard.jsp">
-                            <i class="fas fa-user"></i> Profile/Dashboard
+                            <i class="fas fa-user"></i> Dashboard
                         </a>
                     </li>
                     <li>

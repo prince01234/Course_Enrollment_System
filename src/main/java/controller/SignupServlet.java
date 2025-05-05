@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.AuthService;
+import util.PasswordHasher;
 
 import java.io.IOException;
 
@@ -41,6 +42,8 @@ public class SignupServlet extends HttpServlet {
 	        request.getRequestDispatcher("/pages/public/register.jsp").forward(request, response);
 	        return;
 	    }
+	    
+//	    String hashedPassword = PasswordHasher.hashPassword(password);
 	    
 	    try {
 	        // Use AuthService to create user with hashed password

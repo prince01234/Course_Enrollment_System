@@ -14,6 +14,7 @@ public class AuthService {
             return -1;
         }
 
+        
         // Hash the password before storing
         String hashedPassword = PasswordHasher.hashPassword(password);
 

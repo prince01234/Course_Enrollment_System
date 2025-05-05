@@ -19,9 +19,12 @@ public class UserDAO {
 	    // Force the role to be USER (student)
 	    user.setRole(Role.USER);
 
+//	    // Hash the password before storing
+//	    String plainPassword = user.getPassword();
+//	    String hashedPassword = plainPassword;
+//	    user.setPassword(hashedPassword);
 	    // Hash the password before storing
-	    String plainPassword = user.getPassword();
-	    String hashedPassword = PasswordHasher.hashPassword(plainPassword);
+	    String hashedPassword = user.getPassword();
 	    user.setPassword(hashedPassword);
 
 	    String sql = "INSERT INTO users (first_name, last_name, username, email, password, address, phone_number, profile_picture, role) " +
@@ -77,49 +80,48 @@ public class UserDAO {
 	    return -1; // Return -1 if failed to create user
 	}
     
-    public static User validateUser(String email, String password) {
-        String sql = "SELECT * FROM users WHERE email = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setString(1, email);
-            ResultSet rs = ps.executeQuery();
-            
-            if (rs.next()) {
-                // Get stored hashed password from database
-                String storedHashedPassword = rs.getString("password");
-                
-                // Verify password using BCrypt
-                if (PasswordHasher.verifyPassword(password, storedHashedPassword)) {
-                    User user = new User();
-                    user.setUserId(rs.getInt("user_id"));
-                    user.setFirstName(rs.getString("first_name"));
-                    user.setLastName(rs.getString("last_name"));
-                    user.setUsername(rs.getString("username"));
-                    user.setEmail(rs.getString("email"));
-                    user.setPassword(storedHashedPassword); 
-                    user.setAddress(rs.getString("address"));
-                    user.setPhoneNumber(rs.getString("phone_number"));
-                    
-                    // Handle BLOB profile picture if needed
-                    byte[] profilePicture = rs.getBytes("profile_picture");
-                    if (profilePicture != null) {
-                        user.setProfilePicture(profilePicture);
-                    }
-                    
-                    // Convert string role to enum
-                    String roleStr = rs.getString("role");
-                    user.setRole(Role.valueOf(roleStr));
-                    
-                    return user;
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error validating user: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return null;
-    }
+	public static User validateUser(String usernameOrEmail, String password) {
+	    String sql = "SELECT * FROM users WHERE email = ? OR username = ?";
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql)) {
+
+	        ps.setString(1, usernameOrEmail);
+	        ps.setString(2, usernameOrEmail);
+	        
+	        System.out.println("Attempting to validate user: " + usernameOrEmail);
+	        ResultSet rs = ps.executeQuery();
+	        
+	        if (rs.next()) {
+	            String storedHashedPassword = rs.getString("password");
+	            System.out.println(storedHashedPassword);
+	            System.out.println(password);
+	            System.out.println(PasswordHasher.verifyPassword(password, storedHashedPassword));
+	            if (PasswordHasher.verifyPassword(password, storedHashedPassword)) {
+	                User user = new User();
+	                user.setUserId(rs.getInt("user_id"));
+	                user.setFirstName(rs.getString("first_name"));
+	                user.setLastName(rs.getString("last_name"));
+	                user.setUsername(rs.getString("username"));
+	                user.setEmail(rs.getString("email"));
+	                user.setPassword(storedHashedPassword);
+	                user.setAddress(rs.getString("address"));
+	                user.setPhoneNumber(rs.getString("phone_number"));
+	                byte[] profilePicture = rs.getBytes("profile_picture");
+	                if (profilePicture != null) {
+	                    user.setProfilePicture(profilePicture);
+	                }
+	                String roleStr = rs.getString("role");
+	                user.setRole(Role.valueOf(roleStr));
+	              System.out.println(user);
+	                return user;
+	            }
+	        }
+	    } catch (SQLException e) {
+	        System.err.println("Error validating user: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	    return null;
+	}
     
  // Method to update user password 
     public static boolean updatePassword(int userId, String currentPassword, String newPassword) {
