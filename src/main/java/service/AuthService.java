@@ -7,8 +7,8 @@ import enums.Role;
 
 public class AuthService {
 
-    // Create a new user (student)
-    public static int createUser(String firstName, String lastName, String username, String email, String password) {
+    // Create a new user 
+    public static int createUser(String firstName, String lastName, String username, String email, String password, Role role) {
         // Check if email or username already exists
         if (UserDAO.emailExists(email) || UserDAO.usernameExists(username)) {
             return -1;
@@ -29,7 +29,7 @@ public class AuthService {
             null, // address
             null, // phoneNumber
             null, // profilePicture
-            Role.USER
+            role
         );
 
         return UserDAO.createUser(newUser);

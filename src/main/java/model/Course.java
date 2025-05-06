@@ -1,6 +1,9 @@
 package model;
 
 import enums.CourseEnum;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Course {
     private int courseId;
@@ -14,6 +17,8 @@ public class Course {
     private int credits;
     private double cost;
     private CourseEnum status = CourseEnum.ACTIVE;
+    private Timestamp createdAt;
+    private Timestamp updatedAt;
 
     // Default constructor
     public Course() {
@@ -157,6 +162,65 @@ public class Course {
 
     public String getStatusName() {
         return status.getDisplayName();
+    }
+    
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Timestamp updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+    
+
+    public boolean isValid() {
+        return courseTitle != null && !courseTitle.trim().isEmpty()
+            && description != null && !description.trim().isEmpty()
+            && duration > 0
+            && minStudents > 0
+            && maxStudents >= minStudents
+            && credits > 0
+            && cost >= 0;
+    }
+
+    public List<String> getValidationErrors() {
+        List<String> errors = new ArrayList<>();
+        
+        if (courseTitle == null || courseTitle.trim().isEmpty()) {
+            errors.add("Course title is required");
+        }
+        if (description == null || description.trim().isEmpty()) {
+            errors.add("Description is required");
+        }
+        if (duration <= 0) {
+            errors.add("Duration must be positive");
+        }
+        if (minStudents <= 0) {
+            errors.add("Minimum students must be positive");
+        }
+        if (maxStudents < minStudents) {
+            errors.add("Maximum students must be greater than minimum");
+        }
+        if (credits <= 0) {
+            errors.add("Credits must be positive");
+        }
+        if (cost < 0) {
+            errors.add("Cost cannot be negative");
+        }
+        
+        return errors;
+    }
+    
+    public boolean hasAvailableSlots(int currentEnrollments) {
+        return isOpen && currentEnrollments < maxStudents;
     }
 
     @Override

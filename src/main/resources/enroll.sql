@@ -26,6 +26,8 @@ CREATE TABLE Courses (
     credits INT,
     cost DOUBLE,
     status ENUM('ACTIVE', 'INACTIVE') DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (instructor_id) REFERENCES users(user_id)
 );
 

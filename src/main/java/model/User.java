@@ -1,6 +1,8 @@
 package model;
 
 import enums.Role;
+import java.sql.Timestamp;
+
 
 public class User {
     private int userId;
@@ -13,13 +15,15 @@ public class User {
     private String phoneNumber;
     private byte[] profilePicture;
     private Role role = Role.USER;
+    private Timestamp createdAt;
+    
     
     public User() {
     }
     
     public User(int userId, String firstName, String lastName, String username, 
-                String email, String password, String address,
-                String phoneNumber, byte[] profilePicture, Role role) {
+            String email, String password, String address,
+            String phoneNumber, byte[] profilePicture, Role role) {
         this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -34,8 +38,8 @@ public class User {
 
     // Constructor without ID for creating new users
     public User(String firstName, String lastName, String username, 
-                String email, String password, String address,
-                String phoneNumber, byte[] profilePicture, Role role) {
+            String email, String password, String address,
+            String phoneNumber, byte[] profilePicture, Role role) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.username = username;
@@ -155,6 +159,14 @@ public class User {
         return isAdmin();
     }
     
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+    
     @Override
     public String toString() {
         return "User{" +
@@ -164,6 +176,7 @@ public class User {
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", role=" + role +
+                ", createdAt=" + createdAt +
                 '}';
     }
 }

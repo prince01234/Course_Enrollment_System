@@ -1,4 +1,22 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="model.User" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.util.Base64" %>
+
+<%
+    // Session validation
+    User user = (User) session.getAttribute("user");
+    if (user == null || !user.getRole().toString().equals("USER")) {
+        response.sendRedirect(request.getContextPath() + "/pages/public/login.jsp");
+        return;
+    }
+
+    // Format profile picture
+    String profileImage = user.getProfilePicture() != null ? 
+        "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(user.getProfilePicture()) :
+        request.getContextPath() + "/images/profile-placeholder.jpg";
+%>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +37,7 @@
             <nav>
                 <ul>
                     <li class="active">
-                        <a href="<%= request.getContextPath() %>/pages/student/student_dashboard.jsp">
+                        <a href="<%= request.getContextPath() %>/StudentDashboardServlet">
                             <i class="fas fa-user"></i>
                             <span>Profile</span>
                         </a>
@@ -58,7 +76,7 @@
         <div class="main-content">
             <div class="header">
                 <div class="header-content">
-                    <h1>Welcome back, <span class="highlight">Euphoria</span>!</h1>
+                    <h1>Welcome back, <span class="highlight"><%= user.getFirstName() %></span>!</h1>
                     <p>Manage your student profile and track your progress</p>
                 </div>
                 <div class="header-actions">
@@ -73,16 +91,16 @@
                 <div class="profile-header">
                     <div class="profile-image-container">
                         <div class="profile-image">
-                            <img src="<%= request.getContextPath() %>/images/profile-placeholder.jpg" alt="Euphoria Rose">
+                            <img src="<%= profileImage %>" alt="<%= user.getFirstName() %>">
                         </div>
                         <div class="profile-status online"></div>
                     </div>
                     <div class="profile-info">
-                        <h2>Euphoria Rose</h2>
-                        <p class="student-id"><i class="fas fa-id-card"></i> Student ID: STU2025478</p>
+                        <h2><%= user.getFirstName() + " " + user.getLastName() %></h2>
+                        <p class="student-id"><i class="fas fa-id-card"></i> Student ID: STU<%= String.format("%07d", user.getUserId()) %></p>
                     </div>
                     <div class="profile-actions">
-                        <button class="edit-profile-btn">
+                        <button class="edit-profile-btn" onclick="location.href='<%= request.getContextPath() %>/pages/student/edit_profile.jsp'">
                             <i class="fas fa-edit"></i>
                             Edit Profile
                         </button>
@@ -93,27 +111,29 @@
                     <div class="details-column">
                         <div class="detail-item">
                             <h3><i class="fas fa-user"></i> Full Name</h3>
-                            <p>Euphoria Rose</p>
+                            <p><%= user.getFirstName() + " " + user.getLastName() %></p>
                         </div>
                         <div class="detail-item">
                             <h3><i class="fas fa-envelope"></i> Email Address</h3>
-                            <p>euphoria.rose@email.com</p>
+                            <p><%= user.getEmail() %></p>
                         </div>
                         <div class="detail-item">
                             <h3><i class="fas fa-phone"></i> Phone Number</h3>
-                            <p>90000000000</p>
+                            <p><%= user.getPhoneNumber() != null ? user.getPhoneNumber() : "Not provided" %></p>
                         </div>
                     </div>
                     
                     <div class="details-column">
                         <div class="detail-item">
                             <h3><i class="fas fa-map-marker-alt"></i> Address</h3>
-                            <p>123 IIC College, Morang, Nepal</p>
+                            <p><%= user.getAddress() != null ? user.getAddress() : "Not provided" %></p>
                         </div>
-                        <div class="detail-item">
-                            <h3><i class="fas fa-calendar-alt"></i> Account Created</h3>
-                            <p>January 15, 2025</p>
-                        </div>
+						<div class="detail-item">
+						    <h3><i class="fas fa-calendar-alt"></i> Account Created</h3>
+						    <p>
+						        <%= new SimpleDateFormat("MMMM dd, yyyy").format(user.getCreatedAt()) %>
+						    </p>
+						</div>
                         <div class="detail-item">
                             <h3><i class="fas fa-laptop-code"></i> Department</h3>
                             <p>Computer Science</p>
@@ -122,7 +142,7 @@
                 </div>
                 
                 <div class="account-actions">
-                    <button class="update-password-btn">
+                    <button class="update-password-btn" onclick="location.href='<%= request.getContextPath() %>/pages/student/change_password.jsp'">
                         <i class="fas fa-key"></i>
                         Update Password
                     </button>
@@ -137,7 +157,7 @@
                 <div class="stat-card">
                     <div class="stat-info">
                         <h3>Enrolled Courses</h3>
-                        <p class="stat-number">6</p>
+                        <p class="stat-number">${enrolledCourses}</p>
                     </div>
                     <div class="stat-icon courses-icon">
                         <i class="fas fa-book"></i>
@@ -150,7 +170,7 @@
                 <div class="stat-card">
                     <div class="stat-info">
                         <h3>Pending Approvals</h3>
-                        <p class="stat-number">2</p>
+                        <p class="stat-number">${pendingApprovals}</p>
                     </div>
                     <div class="stat-icon approvals-icon">
                         <i class="fas fa-clock"></i>
@@ -173,7 +193,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </body>

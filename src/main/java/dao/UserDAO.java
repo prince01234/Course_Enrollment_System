@@ -7,6 +7,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import util.DBConnection;
 import util.PasswordHasher;
 import model.User;
@@ -14,18 +17,11 @@ import enums.Role;
 
 public class UserDAO {
     
-    // Creating new user (student)
+    // Creating new user 
 	public static int createUser(User user) {
-	    // Force the role to be USER (student)
-	    user.setRole(Role.USER);
 
-//	    // Hash the password before storing
-//	    String plainPassword = user.getPassword();
-//	    String hashedPassword = plainPassword;
+//	    String hashedPassword = user.getPassword();
 //	    user.setPassword(hashedPassword);
-	    // Hash the password before storing
-	    String hashedPassword = user.getPassword();
-	    user.setPassword(hashedPassword);
 
 	    String sql = "INSERT INTO users (first_name, last_name, username, email, password, address, phone_number, profile_picture, role) " +
 	                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -60,7 +56,7 @@ public class UserDAO {
 	            ps.setNull(8, Types.BLOB);
 	        }
 
-	        ps.setString(9, user.getRole().toString()); // Always USER role
+	        ps.setString(9, user.getRole().toString()); 
 
 	        // Execute Update
 	        int affectedRows = ps.executeUpdate();
@@ -88,15 +84,18 @@ public class UserDAO {
 	        ps.setString(1, usernameOrEmail);
 	        ps.setString(2, usernameOrEmail);
 	        
-	        System.out.println("Attempting to validate user: " + usernameOrEmail);
+	        System.out.println("Executing query for user: " + usernameOrEmail);
 	        ResultSet rs = ps.executeQuery();
 	        
 	        if (rs.next()) {
 	            String storedHashedPassword = rs.getString("password");
-	            System.out.println(storedHashedPassword);
-	            System.out.println(password);
-	            System.out.println(PasswordHasher.verifyPassword(password, storedHashedPassword));
-	            if (PasswordHasher.verifyPassword(password, storedHashedPassword)) {
+	            System.out.println("Found user in database");
+	            System.out.println("Stored hash: " + storedHashedPassword);
+	            
+	            boolean passwordVerified = PasswordHasher.verifyPassword(password, storedHashedPassword);
+	            System.out.println("Password verification result: " + passwordVerified);
+
+	            if (passwordVerified) {
 	                User user = new User();
 	                user.setUserId(rs.getInt("user_id"));
 	                user.setFirstName(rs.getString("first_name"));
@@ -106,18 +105,44 @@ public class UserDAO {
 	                user.setPassword(storedHashedPassword);
 	                user.setAddress(rs.getString("address"));
 	                user.setPhoneNumber(rs.getString("phone_number"));
+	                
+	                String roleStr = rs.getString("role");
+	                System.out.println("Role from database: " + roleStr);
+	                
+	                if (roleStr != null) {
+	                    try {
+	                        Role role = Role.valueOf(roleStr.toUpperCase());
+	                        user.setRole(role);
+	                        System.out.println("Role set to: " + role);
+	                    } catch (IllegalArgumentException e) {
+	                        System.err.println("Invalid role in database: " + roleStr);
+	                        return null;
+	                    }
+	                } else {
+	                    System.err.println("Role is null in database");
+	                    return null;
+	                }
+
 	                byte[] profilePicture = rs.getBytes("profile_picture");
 	                if (profilePicture != null) {
 	                    user.setProfilePicture(profilePicture);
 	                }
-	                String roleStr = rs.getString("role");
-	                user.setRole(Role.valueOf(roleStr));
-	              System.out.println(user);
+
+	                user.setCreatedAt(rs.getTimestamp("created_at"));
+	                
+	                System.out.println("User object created successfully: " + user);
 	                return user;
+	            } else {
+	                System.out.println("Password verification failed");
 	            }
+	        } else {
+	            System.out.println("No user found with username/email: " + usernameOrEmail);
 	        }
 	    } catch (SQLException e) {
-	        System.err.println("Error validating user: " + e.getMessage());
+	        System.err.println("Database error during validation: " + e.getMessage());
+	        e.printStackTrace();
+	    } catch (Exception e) {
+	        System.err.println("Unexpected error during validation: " + e.getMessage());
 	        e.printStackTrace();
 	    }
 	    return null;
@@ -214,6 +239,7 @@ public class UserDAO {
                 
                 String roleStr = rs.getString("role");
                 user.setRole(Role.valueOf(roleStr));
+                user.setCreatedAt(rs.getTimestamp("created_at"));
                 
                 return user;
             }
@@ -260,5 +286,122 @@ public class UserDAO {
             e.printStackTrace();
         }
         return false;
+    }
+    
+    // Count total number of users
+    public static int getTotalUsers() {
+        String sql = "SELECT COUNT(*) FROM users WHERE role = 'USER'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting total users: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    // Get all users
+    public static List<User> getAllUsers() {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE role = 'USER'";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                users.add(mapResultSetToUser(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting all users: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return users;
+    }
+    
+    // Get users by role
+    public static List<User> getUsersByRole(Role role) {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE role = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, role.toString());
+            ResultSet rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                users.add(mapResultSetToUser(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting users by role: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    // Update user details
+    public static boolean updateUser(User user) {
+        String sql = "UPDATE users SET first_name = ?, last_name = ?, email = ?, " +
+                    "address = ?, phone_number = ? WHERE user_id = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, user.getFirstName());
+            ps.setString(2, user.getLastName());
+            ps.setString(3, user.getEmail());
+            ps.setString(4, user.getAddress());
+            ps.setString(5, user.getPhoneNumber());
+            ps.setInt(6, user.getUserId());
+            
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating user: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Get recently registered users
+    public static List<User> getRecentUsers(int limit) {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE role = 'USER' ORDER BY created_at DESC LIMIT ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, limit);
+            ResultSet rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                users.add(mapResultSetToUser(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting recent users: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return users;
+    }
+    
+    // Helper method to map ResultSet to User object
+    private static User mapResultSetToUser(ResultSet rs) throws SQLException {
+        User user = new User();
+        user.setUserId(rs.getInt("user_id"));
+        user.setFirstName(rs.getString("first_name"));
+        user.setLastName(rs.getString("last_name"));
+        user.setUsername(rs.getString("username"));
+        user.setEmail(rs.getString("email"));
+        user.setPassword(rs.getString("password"));
+        user.setAddress(rs.getString("address"));
+        user.setPhoneNumber(rs.getString("phone_number"));
+        user.setRole(Role.valueOf(rs.getString("role")));
+        user.setCreatedAt(rs.getTimestamp("created_at"));
+
+        return user;
     }
 }

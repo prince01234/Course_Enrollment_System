@@ -6,9 +6,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import service.AuthService;
-import util.PasswordHasher;
-
 import java.io.IOException;
+import java.net.URLEncoder;
+
+import enums.Role;
+import util.ReferralConfig;
 
 @WebServlet(name = "SignupServlet", urlPatterns = {"/SignupServlet", "/signup"})
 
@@ -36,31 +38,48 @@ public class SignupServlet extends HttpServlet {
 		String email = request.getParameter("email");
 		String password = request.getParameter("password");
 		String confirmPassword = request.getParameter("confirmPassword");
-		
-	    if (!password.equals(confirmPassword)) {
-	        request.setAttribute("regerror", "Passwords do not match.");
-	        request.getRequestDispatcher("/pages/public/register.jsp").forward(request, response);
-	        return;
-	    }
-	    
-//	    String hashedPassword = PasswordHasher.hashPassword(password);
-	    
+        String referralPhrase = request.getParameter("referralPhrase");
+
+        
+        System.out.println("Referral phrase received: " + referralPhrase);
+
+        // Validate passwords match
+        if (!password.equals(confirmPassword)) {
+            String errorMsg = URLEncoder.encode("Passwords do not match!", "UTF-8");
+            response.sendRedirect(request.getContextPath() + 
+                "/pages/public/register.jsp?error=" + errorMsg);
+            return;
+        }
+        
+
+        
+        // Determine role
+        Role role = ReferralConfig.isAdminReferral(referralPhrase) ? Role.ADMIN : Role.USER;
+        System.out.println("Setting role as " + role);
+        
 	    try {
 	        // Use AuthService to create user with hashed password
-	        int userId = AuthService.createUser(firstName, lastName, username, email, password);
+	        int userId = AuthService.createUser(firstName, lastName, username, email, password, role);
 
 	        if (userId > 0) {
-	            // Registration successful, redirect to login page
-	            response.sendRedirect(request.getContextPath() + "/pages/public/login.jsp?regerror=false");
-	        } else {
-	            // Registration failed (likely email or username already exists)
-	            request.setAttribute("regerror", "Registration failed. Email or username may already exist.");
+	            // Registration successful
+	            String roleMsg = (role == Role.ADMIN) ? "Admin" : "User";
+	            request.setAttribute("successMessage", 
+	                "Account created successfully as " + roleMsg + "! Redirecting to login...");
+	            request.setAttribute("redirectUrl", 
+	                request.getContextPath() + "/pages/public/login.jsp");
 	            request.getRequestDispatcher("/pages/public/register.jsp").forward(request, response);
+	        } else {
+                // Registration failed
+                String errorMsg = URLEncoder.encode("Username or email already exists!", "UTF-8");
+                response.sendRedirect(request.getContextPath() + 
+                    "/pages/public/register.jsp?error=" + errorMsg);
 	        }
 	    } catch (Exception e) {
-	        // Handle error
-	        request.setAttribute("regerror", "An error occurred. Please try again.");
-	        request.getRequestDispatcher("/pages/public/register.jsp").forward(request, response);
+            // Handle any unexpected errors
+            String errorMsg = URLEncoder.encode("An error occurred: " + e.getMessage(), "UTF-8");
+            response.sendRedirect(request.getContextPath() + 
+                "/pages/public/register.jsp?error=" + errorMsg);
 	    }
 
 	}

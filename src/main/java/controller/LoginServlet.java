@@ -4,6 +4,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.net.URLEncoder;
 
 import model.User;
 import dao.UserDAO;
@@ -34,7 +35,13 @@ public class LoginServlet extends HttpServlet {
                             HttpSession session = request.getSession();
                             session.setAttribute("user", user);
                             session.setAttribute("loggedIn", true);
-                            response.sendRedirect(request.getContextPath() + "/pages/student/student_dashboard.jsp");
+                            session.setAttribute("userRole", user.getRole().toString());
+                            
+                            response.sendRedirect(request.getContextPath() + 
+                                    (user.getRole().toString().equals("ADMIN") ? 
+                                     "/pages/admin/admin_dashboard.jsp" : 
+                                     "/pages/student/student_dashboard.jsp"));
+                            
                             return;
                         }
                     }
@@ -77,6 +84,10 @@ public class LoginServlet extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("user", user);
             session.setAttribute("loggedIn", true);
+            session.setAttribute("userRole", user.getRole().toString());
+            
+            System.out.println("Session created - ID: " + session.getId());
+            System.out.println("Session attributes set: user, loggedIn, userRole");
 
             // Handle remember me functionality
             if ("on".equals(rememberMe)) {
@@ -86,9 +97,29 @@ public class LoginServlet extends HttpServlet {
                 rememberMeCookie.setPath(request.getContextPath());
                 response.addCookie(rememberMeCookie);
             }
-            System.out.println("Student dashboard");
-            // Redirect to homepage
-            response.sendRedirect(request.getContextPath() + "/pages/student/student_dashboard.jsp");
+
+            // Role-based redirection
+            String dashboardPath;
+            switch (user.getRole()) {
+                case ADMIN:
+                    System.out.println("Routing to admin dashboard"); // Debug log
+
+                    dashboardPath = "/AdminDashboardServlet";
+                    break;
+                case USER:
+                    dashboardPath = "/StudentDashboardServlet";
+                    break;
+                default:
+                    System.out.println("Invalid role detected: " + user.getRole()); // Debug log
+
+                    String errorMsg = URLEncoder.encode("Invalid user role", "UTF-8");
+                    response.sendRedirect(request.getContextPath() + 
+                        "/pages/public/login.jsp?error=" + errorMsg);
+                    return;
+            }
+            System.out.println("Final dashboard path: " + dashboardPath); // Debug log
+            // Redirect to appropriate dashboard
+            response.sendRedirect(request.getContextPath() + dashboardPath);
         } else {
             // Authentication failed
             System.out.println("Authentication failed");
