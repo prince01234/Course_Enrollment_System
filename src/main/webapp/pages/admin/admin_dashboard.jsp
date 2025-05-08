@@ -42,12 +42,12 @@
                     </a>
                 </li>
                 <li>
-                    <a href="<%= request.getContextPath() %>/pages/admin/manage_courses.jsp">
+                    <a href="<%= request.getContextPath() %>/ManageCoursesServlet">
                         <i class="fas fa-book"></i> Manage Courses
                     </a>
                 </li>
                 <li>
-                    <a href="<%= request.getContextPath() %>/pages/admin/manage_enrollments.jsp">
+                    <a href="<%= request.getContextPath() %>/ManageEnrollmentsServlet">
                         <i class="fas fa-user-plus"></i> Enrollment
                     </a>
                 </li>

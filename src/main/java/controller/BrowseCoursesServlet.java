@@ -7,16 +7,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import model.Course;
 import model.User;
 import dao.CourseDAO;
 import dao.UserDAO;
 import dao.EnrollmentDAO;
-import enums.CourseEnum;
 
-@WebServlet(name = "BrowseCoursesServlet", value = "/BrowseCoursesServlet")
+@WebServlet(name = "BrowseCoursesServlet", urlPatterns = {"/BrowseCoursesServlet"})
 public class BrowseCoursesServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
@@ -36,6 +37,14 @@ public class BrowseCoursesServlet extends HttpServlet {
             // Get search parameters
             String searchQuery = request.getParameter("search");
             
+            // Retrieve messages from session instead of request attributes
+            String successMessage = (String) session.getAttribute("successMessage");
+            String errorMessage = (String) session.getAttribute("errorMessage");
+            
+            // Clear messages from session after retrieving
+            session.removeAttribute("successMessage");
+            session.removeAttribute("errorMessage");
+            
             // Get available courses
             List<Course> availableCourses;
             if (searchQuery != null && !searchQuery.trim().isEmpty()) {
@@ -44,33 +53,51 @@ public class BrowseCoursesServlet extends HttpServlet {
                 availableCourses = CourseDAO.getAvailableCourses();
             }
             
-            // For each course, fetch the instructor name
+            // Store instructor ID to name mapping
+            Map<Integer, String> instructorNames = new HashMap<>();
+            
+            // Store enrollment status for each course
+            Map<Integer, Boolean> enrolledCourses = new HashMap<>();
+            
+            // Process each course
             for (Course course : availableCourses) {
-                if (course.getInstructorId() > 0) {
+                // Get instructor name if not already fetched
+                if (!instructorNames.containsKey(course.getInstructorId()) && course.getInstructorId() > 0) {
                     User instructor = UserDAO.getUserById(course.getInstructorId());
                     if (instructor != null) {
-                        course.setInstructorName(instructor.getFirstName() + " " + instructor.getLastName());
-                        course.setInstructorProfilePic(instructor.getProfilePicture());
+                        instructorNames.put(course.getInstructorId(), 
+                                          instructor.getFirstName() + " " + instructor.getLastName());
                     }
                 }
                 
-                // Check if student is already enrolled in this course
-                boolean isEnrolled = EnrollmentDAO.isStudentEnrolledInCourse(student.getUserId(), course.getCourseId());
-                course.setEnrolled(isEnrolled);
+                // Check if student is already enrolled
+                boolean isEnrolled = EnrollmentDAO.isStudentEnrolledInCourse(
+                    student.getUserId(), course.getCourseId());
+                enrolledCourses.put(course.getCourseId(), isEnrolled);
             }
             
             // Set attributes for the JSP
             request.setAttribute("availableCourses", availableCourses);
+            request.setAttribute("instructorNames", instructorNames);
+            request.setAttribute("enrolledCourses", enrolledCourses);
             request.setAttribute("searchQuery", searchQuery);
+            
+            // Forward messages if they exist
+            if (successMessage != null) {
+                request.setAttribute("successMessage", successMessage);
+            }
+            if (errorMessage != null) {
+                request.setAttribute("errorMessage", errorMessage);
+            }
             
             // Forward to the JSP page
             request.getRequestDispatcher("/pages/student/browse_courses.jsp").forward(request, response);
             
         } catch (Exception e) {
-            System.err.println("Error loading courses: " + e.getMessage());
+            System.err.println("Error in BrowseCoursesServlet: " + e.getMessage());
             e.printStackTrace();
-            request.setAttribute("errorMessage", "Failed to load courses. Please try again later.");
-            request.getRequestDispatcher("/pages/error.jsp").forward(request, response);
+            session.setAttribute("errorMessage", "Failed to load courses. Please try again later.");
+            response.sendRedirect(request.getContextPath() + "/pages/error.jsp");
         }
     }
 

@@ -1,4 +1,48 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.util.*" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="model.Course" %>
+<%@ page import="model.User" %>
+
+<%
+    // Session validation
+    User user = (User) session.getAttribute("user");
+    if (user == null) {
+        response.sendRedirect(request.getContextPath() + "/pages/public/login.jsp");
+        return;
+    }
+    
+    // Get courses from request attributes with safety checks
+    List<Course> availableCourses = new ArrayList<>();
+    Object coursesObj = request.getAttribute("availableCourses");
+    if (coursesObj instanceof List<?>) {
+        availableCourses = (List<Course>) coursesObj;
+    }
+    
+    // Get instructor names map with safety checks
+    Map<Integer, String> instructorNames = new HashMap<>();
+    Object instructorsObj = request.getAttribute("instructorNames");
+    if (instructorsObj instanceof Map<?, ?>) {
+        instructorNames = (Map<Integer, String>) instructorsObj;
+    }
+    
+    // Get enrollment status map with safety checks
+    Map<Integer, Boolean> enrolledCourses = new HashMap<>();
+    Object enrollmentsObj = request.getAttribute("enrolledCourses");
+    if (enrollmentsObj instanceof Map<?, ?>) {
+        enrolledCourses = (Map<Integer, Boolean>) enrollmentsObj;
+    }
+    
+    // Get search query with null check
+    String searchQuery = (String) request.getAttribute("searchQuery");
+    searchQuery = (searchQuery == null) ? "" : searchQuery;
+    
+    // Messages
+    String successMessage = (String) request.getAttribute("successMessage");
+    String errorMessage = (String) request.getAttribute("errorMessage");
+%>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,12 +78,12 @@
                 <nav>
                     <ul>
                         <li>
-                            <a href="<%= request.getContextPath() %>/pages/student/student_dashboard.jsp">
+                            <a href="<%= request.getContextPath() %>/StudentDashboardServlet">
                                 <i class="fas fa-user"></i> Profile
                             </a>
                         </li>
                         <li class="active">
-                            <a href="<%= request.getContextPath() %>/pages/student/browse_courses.jsp">
+                            <a href="<%= request.getContextPath() %>/BrowseCoursesServlet">
                                 <i class="fas fa-book"></i> Browse Courses
                             </a>
                         </li>
@@ -66,105 +110,104 @@
             <main class="content">
                 <h2>Browse Courses</h2>
                 
+                <!-- Messages -->
+                <% if (successMessage != null) { %>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <%= successMessage %>
+                    </div>
+                <% } %>
+                <% if (errorMessage != null) { %>
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <%= errorMessage %>
+                    </div>
+                <% } %>
+                
                 <!-- Search and Filters -->
                 <div class="search-container">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search courses...">
-                    </div>
+                    <form action="<%= request.getContextPath() %>/BrowseCoursesServlet" method="get">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" name="search" placeholder="Search courses..." value="<%= searchQuery %>">
+                        </div>
+                    </form>
                     <button class="filter-btn">
                         <i class="fas fa-filter"></i> Show Filters
                     </button>
                 </div>
 
-                <!-- Course Cards -->
-                <div class="course-cards">
-                    <!-- Course 1 -->
-                    <div class="course-card">
-                        <div class="course-info">
-                            <h3>Introduction to Web Development</h3>
-                            <div class="instructor">
-                                <img src="https://via.placeholder.com/30" alt="Instructor">
-                                <span>Dr. Sarah Johnson</span>
-                            </div>
-                            <div class="course-meta">
-                                <span><i class="far fa-clock"></i> 8 weeks</span>
-                                <span class="level beginner"><i class="fas fa-signal"></i> Beginner</span>
-                            </div>
-                            <p>Learn the fundamentals of web development including HTML, CSS, and JavaScript.</p>
-                        </div>
-                        <div class="course-actions">
-                            <button class="btn-enroll">Enroll Now</button>
-                            <button class="btn-detail">Detail</button>
-                        </div>
+                <% if (availableCourses == null || availableCourses.isEmpty()) { %>
+                    <div class="no-courses">
+                        <i class="fas fa-info-circle"></i>
+                        <p>No courses available at this time. Please check back later.</p>
                     </div>
-
-                    <!-- Course 2 -->
-                    <div class="course-card">
-                        <div class="course-info">
-                            <h3>Advanced Data Science</h3>
-                            <div class="instructor">
-                                <img src="https://via.placeholder.com/30" alt="Instructor">
-                                <span>Prof. Michael Chen</span>
+                <% } else { %>
+                    <!-- Course Cards -->
+                    <div class="course-cards">
+                        <% for (Course course : availableCourses) { 
+                            String instructorName = instructorNames.get(course.getInstructorId());
+                            if (instructorName == null) instructorName = "TBA";
+                            
+                            Boolean isEnrolledObj = enrolledCourses.get(course.getCourseId());
+                            boolean isEnrolled = isEnrolledObj != null && isEnrolledObj;
+                            
+                            // Determine course level based on credits
+                            String levelClass = "beginner";
+                            String level = "Beginner";
+                            if (course.getCredits() > 4) {
+                                levelClass = "advanced";
+                                level = "Advanced";
+                            } else if (course.getCredits() > 2) {
+                                levelClass = "intermediate";
+                                level = "Intermediate";
+                            }
+                        %>
+                            <div class="course-card">
+                                <div class="course-info">
+                                    <h3><%= course.getCourseTitle() %></h3>
+                                    <div class="instructor">
+                                        <img src="https://via.placeholder.com/30" alt="Instructor">
+                                        <span><%= instructorName %></span>
+                                    </div>
+                                    <div class="course-meta">
+                                        <span><i class="far fa-clock"></i> <%= course.getDuration() %> weeks</span>
+                                        <span class="level <%= levelClass %>"><i class="fas fa-signal"></i> <%= level %></span>
+                                    </div>
+                                    <p><%= course.getDescription() %></p>
+                                </div>
+                                <div class="course-actions">
+                                    <% if (isEnrolled) { %>
+                                        <button class="btn-enroll" disabled>Enrolled</button>
+                                    <% } else { %>
+                                        <form action="<%= request.getContextPath() %>/EnrollCourseServlet" method="post">
+                                            <input type="hidden" name="courseId" value="<%= course.getCourseId() %>">
+                                            <button type="submit" class="btn-enroll">Enroll Now</button>
+                                        </form>
+                                    <% } %>
+                                    <button class="btn-detail" onclick="window.location.href='<%= request.getContextPath() %>/CourseDetailsServlet?courseId=<%= course.getCourseId() %>'">Detail</button>
+                                </div>
                             </div>
-                            <div class="course-meta">
-                                <span><i class="far fa-clock"></i> 12 weeks</span>
-                                <span class="level advanced"><i class="fas fa-signal"></i> Advanced</span>
-                            </div>
-                            <p>Master advanced concepts in data science, machine learning, and statistical analysis.</p>
-                        </div>
-                        <div class="course-actions">
-                            <button class="btn-enroll">Enroll Now</button>
-                            <button class="btn-detail">Detail</button>
-                        </div>
+                        <% } %>
                     </div>
-
-                    <!-- Course 3 -->
-                    <div class="course-card">
-                        <div class="course-info">
-                            <h3>Digital Marketing Fundamentals</h3>
-                            <div class="instructor">
-                                <img src="https://via.placeholder.com/30" alt="Instructor">
-                                <span>Emma Thompson</span>
-                            </div>
-                            <div class="course-meta">
-                                <span><i class="far fa-clock"></i> 6 weeks</span>
-                                <span class="level intermediate"><i class="fas fa-signal"></i> Intermediate</span>
-                            </div>
-                            <p>Learn essential digital marketing strategies and tools for business growth.</p>
-                        </div>
-                        <div class="course-actions">
-                            <button class="btn-enroll">Enroll Now</button>
-                            <button class="btn-detail">Detail</button>
-                        </div>
-                    </div>
-
-                    <!-- Course 4 -->
-                    <div class="course-card">
-                        <div class="course-info">
-                            <h3>UX/UI Design Principles</h3>
-                            <div class="instructor">
-                                <img src="https://via.placeholder.com/30" alt="Instructor">
-                                <span>Alex Rodriguez</span>
-                            </div>
-                            <div class="course-meta">
-                                <span><i class="far fa-clock"></i> 10 weeks</span>
-                                <span class="level intermediate"><i class="fas fa-signal"></i> Intermediate</span>
-                            </div>
-                            <p>Master the principles of user experience and interface design.</p>
-                        </div>
-                        <div class="course-actions">
-                            <button class="btn-enroll">Enroll Now</button>
-                            <button class="btn-detail">Detail</button>
-                        </div>
-                    </div>
-                </div>
+                <% } %>
             </main>
         </div>
     </div>
 
     <script>
-        // You can add JavaScript functionality here or link to external JS file
+        // Hide alerts after 5 seconds
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.display = 'none';
+            });
+        }, 5000);
+        
+        // Filter button functionality
+        document.querySelector('.filter-btn').addEventListener('click', function() {
+            alert('Filter functionality will be implemented in a future update.');
+        });
     </script>
 </body>
 </html>

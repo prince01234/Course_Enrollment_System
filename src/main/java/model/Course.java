@@ -16,6 +16,7 @@ public class Course {
     private int instructorId;
     private int credits;
     private double cost;
+    private int enrollmentCount;
     private CourseEnum status = CourseEnum.ACTIVE;
     private Timestamp createdAt;
     private Timestamp updatedAt;
@@ -217,6 +218,14 @@ public class Course {
         }
         
         return errors;
+    }
+    
+    public int getEnrollmentCount() {
+        return enrollmentCount;
+    }
+
+    public void setEnrollmentCount(int enrollmentCount) {
+        this.enrollmentCount = enrollmentCount;
     }
     
     public boolean hasAvailableSlots(int currentEnrollments) {

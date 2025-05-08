@@ -43,7 +43,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="<%= request.getContextPath() %>/pages/student/browse_courses.jsp">
+                        <a href="<%= request.getContextPath() %>/BrowseCoursesServlet">
                             <i class="fas fa-book"></i>
                             <span>Browse Courses</span>
                         </a>
@@ -75,7 +75,7 @@
         
         <div class="main-content">
             <div class="header">
-                <div class="header-content">
+                <div class="header-content" style="margin-top = 0px">
                     <h1>Welcome back, <span class="highlight"><%= user.getFirstName() %></span>!</h1>
                     <p>Manage your student profile and track your progress</p>
                 </div>
