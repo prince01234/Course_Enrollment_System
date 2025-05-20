@@ -388,6 +388,8 @@ public class UserDAO {
         return users;
     }
     
+    
+    
     // Helper method to map ResultSet to User object
     private static User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();

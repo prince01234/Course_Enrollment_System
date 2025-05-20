@@ -109,7 +109,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduEnroll - Manage Enrollment</title>
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/manage_enrollments.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin/manage_enrollments.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/admin_sidebar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Alert styles */
@@ -145,46 +146,7 @@
 <body>
     <div class="container">
         <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo-container">
-                <i class="fas fa-graduation-cap"></i>
-                <h1 class="logo">EduEnroll</h1>
-            </div>
-            <nav class="nav-menu">
-                <ul>
-                    <li>
-                        <a href="<%= request.getContextPath() %>/AdminDashboardServlet">
-                            <i class="fas fa-user"></i> Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<%= request.getContextPath() %>/ManageCoursesServlet">
-                            <i class="fas fa-book"></i> Manage Courses
-                        </a>
-                    </li>
-                    <li class="active">
-                        <a href="<%= request.getContextPath() %>/ManageEnrollmentsServlet">
-                            <i class="fas fa-clipboard-list"></i> Enrollment
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<%= request.getContextPath() %>/pages/admin/manage_students.jsp">
-                            <i class="fas fa-user-graduate"></i> Students
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<%= request.getContextPath() %>/pages/admin/reports.jsp">
-                            <i class="fas fa-chart-line"></i> Reports / Logs
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<%= request.getContextPath() %>/LogoutServlet">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+		<%@ include file="/pages/components/admin_sidebar.jsp" %>
 
         <!-- Main Content -->
         <div class="main-content">
@@ -279,7 +241,7 @@
                     </div>
                     <div class="filter-dropdown">
                         <button class="filter-btn" onclick="toggleStatusDropdown()">
-                            Filter by Status <i class="fas fa-chevron-down"></i>
+                            Filter <i class="fas fa-chevron-down"></i>
                         </button>
                         <div id="statusDropdown" class="dropdown-content" style="display: none;">
                             <a href="<%= request.getContextPath() %>/ManageEnrollmentsServlet<%= searchQuery.isEmpty() ? "" : "?search=" + searchQuery %>">All</a>

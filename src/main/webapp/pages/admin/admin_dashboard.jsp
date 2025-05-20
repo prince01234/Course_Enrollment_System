@@ -23,52 +23,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduEnroll Admin Dashboard</title>
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin_dashboard.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin/admin_dashboard.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/admin_sidebar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">
-                <i class="fas fa-graduation-cap"></i>
-                <h2>EduEnroll Admin</h2>
-            </div>
-            <ul class="nav-links">
-                <li class="active">
-                    <a href="<%= request.getContextPath() %>/AdminDashboardServlet">
-                        <i class="fas fa-tachometer-alt"></i> Dashboard
-                    </a>
-                </li>
-                <li>
-                    <a href="<%= request.getContextPath() %>/ManageCoursesServlet">
-                        <i class="fas fa-book"></i> Manage Courses
-                    </a>
-                </li>
-                <li>
-                    <a href="<%= request.getContextPath() %>/ManageEnrollmentsServlet">
-                        <i class="fas fa-user-plus"></i> Enrollment
-                    </a>
-                </li>
-                <li>
-                    <a href="<%= request.getContextPath() %>/pages/admin/manage_students.jsp">
-                        <i class="fas fa-user-graduate"></i> Students
-                    </a>
-                </li>
-                <li>
-                    <a href="<%= request.getContextPath() %>/pages/admin/reports.jsp">
-                        <i class="fas fa-chart-bar"></i> Reports
-                    </a>
-                </li>
-                <li>
-                    <a href="<%= request.getContextPath() %>/LogoutServlet">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </li>
-            </ul>
-
-        </div>
+		<%@ include file="/pages/components/admin_sidebar.jsp" %>
 
         <!-- Main Content -->
         <div class="main-content">

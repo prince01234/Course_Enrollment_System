@@ -1,0 +1,131 @@
+@charset "UTF-8";
+/* Sidebar Styles */
+.sidebar {
+    width: 230px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 100;
+    font-size: 15px; /* Standardize sidebar font size */
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+}
+
+.logo-container i {
+    font-size: 24px;
+    color: #4361ee;
+    margin-right: 10px;
+}
+
+.logo-container h2 {
+    color: #4361ee;
+    font-weight: 600;
+    font-size: 22px; /* Standardize logo font size */
+    margin: 0;
+    line-height: 1.2;
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-links li {
+    margin-bottom: 5px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.nav-links li a {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #555;
+    font-size: 15px; /* Standardize sidebar link font size */
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+.nav-links li a:hover {
+    transform: translateX(5px);
+    background-color: transparent;
+    color: inherit;
+    text-decoration: none;
+}
+
+.nav-links li a i {
+    margin-right: 10px;
+    font-size: 18px;
+    transition: transform 0.3s ease;
+}
+
+.nav-links li a:hover i {
+    transform: scale(1.2);
+}
+
+.nav-links li.active {
+    background-color: #e9efff;
+}
+
+.nav-links li.active a {
+    color: #4361ee;
+    font-weight: 600;
+    font-size: 15px; /* Ensure active link doesn't get bigger */
+}
+
+.nav-links li.active a:hover {
+    transform: none;
+}
+
+.nav-links li.logout a {
+    color: #e74c3c;
+}
+
+.nav-links li.logout a:hover {
+    background-color: #ffebeb;
+    color: #c0392b;
+}
+
+/* Responsive: Sidebar collapses on small screens */
+@media (max-width: 900px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        box-shadow: none;
+        padding: 10px 0;
+        font-size: 14px;
+    }
+    .logo-container {
+        margin-bottom: 0;
+        padding: 10px;
+    }
+    .nav-links {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-around;
+    }
+    .nav-links li {
+        margin-bottom: 0;
+    }
+    .nav-links li a {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+}

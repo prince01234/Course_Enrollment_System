@@ -1,0 +1,685 @@
+@charset "UTF-8";
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fb;
+    color: #333;
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Main Content Styles */
+.main-content {
+    flex: 1;
+    margin-left: 230px; /* Matches sidebar width */
+    padding: 0;
+    overflow-y: auto;
+    transition: margin-left 0.3s;
+}
+
+@media (max-width: 900px) {
+    .main-content {
+        margin-left: 0;
+    }
+    .container {
+        flex-direction: column;
+    }
+}
+
+/* Dropdown menu styles */
+.filter-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.filter-btn {
+    background-color: #1a1a1a;
+    color: white;
+    padding: 10px 15px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-btn i {
+    font-size: 12px;
+}
+
+.filter-btn:hover {
+    background-color: #333;
+}
+
+.dropdown-content {
+    position: absolute;
+    right: 0;
+    background-color: #ffffff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    z-index: 1;
+    margin-top: 5px;
+}
+
+.dropdown-content a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+    border-radius: 4px;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.approved {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Action buttons */
+.actions {
+    display: flex;
+    gap: 5px;
+}
+
+.btn {
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.approve-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.approve-btn:hover {
+    background-color: #218838;
+}
+
+.reject-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.reject-btn:hover {
+    background-color: #c82333;
+}
+
+.details-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.details-btn:hover {
+    background-color: #0069d9;
+}
+
+/* No data message */
+.no-data {
+    text-align: center;
+    padding: 30px;
+    font-style: italic;
+    color: #6c757d;
+}
+
+/* Pagination styles */
+.page-btn {
+    padding: 8px 12px;
+    margin: 0 2px;
+    border: 1px solid #dee2e6;
+    background-color: #fff;
+    color: #007bff;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.page-btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.page-btn.disabled {
+    color: #6c757d;
+    pointer-events: none;
+    cursor: default;
+    background-color: #fff;
+    border-color: #dee2e6;
+}
+
+.page-btn:not(.active):not(.disabled):hover {
+    background-color: #e9ecef;
+}
+
+/* Header Styles - Updated */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #f5f7fb;
+    margin-bottom: 30px;
+    box-shadow: none;
+    border-radius: 0;
+    margin-top: 10px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.page-title {
+    font-weight: 600;
+    color: #333;
+    font-size: 25px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.notification {
+    position: relative;
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.notification i {
+    font-size: 20px;
+    color: #667085;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #ff5252;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.user-profile img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    object-fit: cover;
+}
+
+/* Stats Cards Styles */
+.stats-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    padding: 0 20px;
+}
+
+.stat-card {
+    background-color: white;
+    border-radius: 10px;
+    width: calc(25% - 20px);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.icon-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+}
+
+.icon-box i {
+    font-size: 20px;
+    color: white;
+}
+
+.blue {
+    background-color: #4285f4;
+}
+
+.green {
+    background-color: #34a853;
+}
+
+.orange {
+    background-color: #fbbc05;
+}
+
+.red {
+    background-color: #ea4335;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-info span {
+    display: block;
+    font-size: 14px;
+    color: #667085;
+    margin-bottom: 5px;
+}
+
+.stat-info h3 {
+    font-size: 24px;
+    color: #333;
+    font-weight: 600;
+}
+
+/* Table Section Styles */
+.table-section {
+    background-color: white;
+    border-radius: 10px;
+    margin: 0 20px 20px 20px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.search-box {
+    position: relative;
+    width: 300px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px 10px 10px 40px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.search-box input:focus {
+    border-color: #4285f4;
+}
+
+.search-box i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #667085;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    background-color: #4361ee;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.filter-btn:hover {
+    background-color: #5192b0;
+}
+
+.filter-btn i {
+    margin-left: 10px;
+}
+
+/* Table Styles */
+.table-container {
+    overflow-x: auto;
+}
+
+.enrollment-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+.enrollment-table th {
+    padding: 12px 20px;
+    text-align: left;
+    font-weight: 500;
+    color: #667085;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.enrollment-table tbody tr {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.enrollment-table tbody tr:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.enrollment-table td {
+    padding: 15px 20px;
+    vertical-align: middle;
+    background-color: #fff;
+}
+
+.student-info {
+    display: flex;
+    align-items: center;
+}
+
+.student-info img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+}
+
+.student-name {
+    font-weight: 500;
+    margin-bottom: 3px;
+}
+
+.student-id {
+    font-size: 12px;
+    color: #667085;
+}
+
+.course-name {
+    font-weight: 500;
+    margin-bottom: 3px;
+}
+
+.course-duration {
+    font-size: 12px;
+    color: #667085;
+}
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.pending {
+    background-color: #fff2d6;
+    color: #daa520;
+}
+
+.status-badge.approved {
+    background-color: #e6f7e6;
+    color: #34a853;
+}
+
+.status-badge.rejected {
+    background-color: #fee8e7;
+    color: #ea4335;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn {
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.approve-btn {
+    background-color: #34a853;
+    color: white;
+}
+
+.approve-btn:hover {
+    background-color: #2d9446;
+}
+
+.reject-btn {
+    background-color: #ea4335;
+    color: white;
+}
+
+.reject-btn:hover {
+    background-color: #d33c2e;
+}
+
+.details-btn {
+    background-color: #4285f4;
+    color: white;
+}
+
+.details-btn:hover {
+    background-color: #3a76db;
+}
+
+/* Pagination Styles */
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.page-info {
+    font-size: 14px;
+    color: #667085;
+}
+
+.page-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.page-btn {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.page-btn:hover:not(.disabled) {
+    background-color: #f0f5ff;
+    border-color: #4285f4;
+    color: #4285f4;
+}
+
+.page-btn.active {
+    background-color: #4285f4;
+    border-color: #4285f4;
+    color: white;
+}
+
+.page-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-btn:first-child, .page-btn:last-child {
+    width: auto;
+    padding: 0 15px;
+}
+
+/* Responsive Styles */
+@media (max-width: 1200px) {
+    .stat-card {
+        width: calc(50% - 15px);
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    .container {
+        flex-direction: column;
+    }
+    .main-content {
+        margin-left: 0;
+    }
+    .header-left {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .stat-card {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header-right {
+        margin-top: 15px;
+        align-self: flex-end;
+    }
+    .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .search-box {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    .filter-dropdown {
+        width: 100%;
+    }
+    .filter-btn {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .pagination {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .page-controls {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .enrollment-table {
+        display: block;
+    }
+    .enrollment-table thead {
+        display: none;
+    }
+    .enrollment-table tbody, 
+    .enrollment-table tr, 
+    .enrollment-table td {
+        display: block;
+        width: 100%;
+    }
+    .enrollment-table tr {
+        margin-bottom: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .enrollment-table td {
+        text-align: right;
+        padding: 12px 15px;
+        position: relative;
+        padding-left: 50%;
+    }
+    .enrollment-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: 45%;
+        font-weight: 500;
+        text-align: left;
+    }
+    .student-info, .actions {
+        display: flex;
+        justify-content: flex-end;
+    }
+}

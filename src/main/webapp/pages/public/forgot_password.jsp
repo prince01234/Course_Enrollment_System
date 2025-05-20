@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduEnroll - Forgot Password</title>
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/forgot_password.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/public/forgot_password.css">
 </head>
 <body>
     <div class="container">

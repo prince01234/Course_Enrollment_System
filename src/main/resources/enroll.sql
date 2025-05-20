@@ -26,6 +26,7 @@ CREATE TABLE Courses (
     credits INT,
     cost DOUBLE,
     status ENUM('ACTIVE', 'INACTIVE') DEFAULT 'ACTIVE',
+    level ENUM('BEGINNER', 'INTERMEDIATE', 'ADVANCED') DEFAULT 'BEGINNER',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (instructor_id) REFERENCES users(user_id)
@@ -51,4 +52,15 @@ CREATE TABLE Progress (
     progress_percent DOUBLE CHECK (progress_percent >= 0 AND progress_percent <= 100),
     progress_status ENUM('Not_Started', 'In_Progress', 'Completed') DEFAULT 'In_Progress',
     FOREIGN KEY (enrollment_id) REFERENCES Enrollments(enrollment_id)
+);
+
+--For Grades
+CREATE TABLE Grades (
+    grade_id INT AUTO_INCREMENT PRIMARY KEY,
+    enrollment_id INT NOT NULL,
+    grade ENUM('A', 'B', 'C', 'D', 'FAIL') NOT NULL,
+    graded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    remarks VARCHAR(500),
+    FOREIGN KEY (enrollment_id) REFERENCES Enrollments(enrollment_id) ON DELETE CASCADE,
+    UNIQUE (enrollment_id)
 );
