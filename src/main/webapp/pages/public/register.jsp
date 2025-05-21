@@ -10,64 +10,10 @@
     <title>EduEnroll - Sign Up</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/public/register.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style >
-    .message-container {
-        position: fixed;
-        top: 25px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 9999;
-        width: 90%;
-        max-width: 550px;
-        background: #fff;
-    }
-
-    .alert {
-        padding: 15px 20px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        font-size: 16px;
-        font-weight: 500;
-        background: #fff;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-    }
-
-    .alert-success {
-        background: #dff0d8;
-        color: #3c763d;
-        border: 1px solid #d6e9c6;
-        border-left: 4px solid #3c763d;
-    }
-
-    .alert-error {
-        background: #f2dede;
-        color: #a94442;
-        border: 1px solid #ebccd1;
-        border-left: 4px solid #a94442;
-    }
-
-    .alert-icon {
-        display: inline-block;
-        font-size: 24px;
-        line-height: 1;
-        flex-shrink: 0;
-    }
-
-    .message-container, .alert {
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-        -webkit-background-clip: none;
-        background-clip: none;
-    }
-    </style>
+    <!-- We'll remove the style block and apply styles directly in JavaScript -->
 </head>
 <body>
-    <div id="messageContainer" class="message-container"></div>
+    <!-- Toast container will be created dynamically -->
 
     <div class="container">
         <div class="header">
@@ -131,106 +77,215 @@
         </div>
     </div>
 
-	<script>
-	    function showMessage(message, type) {
-	        const messageContainer = document.getElementById('messageContainer');
-	        const alertDiv = document.createElement('div');
-	        alertDiv.className = `alert alert-${type}`;
-	        
-	        const iconSpan = document.createElement('span');
-	        iconSpan.className = 'alert-icon';
-	        iconSpan.innerHTML = type === 'error' ? '&#9888;' : '&#10004;';
-	        
-	        const messageSpan = document.createElement('span');
-	        messageSpan.textContent = message;
-	        
-	        alertDiv.appendChild(iconSpan);
-	        alertDiv.appendChild(messageSpan);
-	        
-	        messageContainer.innerHTML = '';
-	        messageContainer.appendChild(alertDiv);
-	    }
-	
-	    function delayedRedirect(url, delay) {
-	        console.log(`Redirecting to ${url} in ${delay/1000} seconds...`);
-	        return new Promise(resolve => {
-	            setTimeout(() => {
-	                window.location.href = url;
-	                resolve();
-	            }, delay);
-	        });
-	    }
-	
-	    document.addEventListener('DOMContentLoaded', function() {
-	        const form = document.getElementById('signupForm');
-	        
-	        form.addEventListener('submit', function(e) {
-	            e.preventDefault();
-	            
-	            const firstName = document.getElementById('firstName').value.trim();
-	            const lastName = document.getElementById('lastName').value.trim();
-	            const username = document.getElementById('username').value.trim();
-	            const email = document.getElementById('email').value.trim();
-	            const password = document.getElementById('password').value;
-	            const confirmPassword = document.getElementById('confirmPassword').value;
-	            
-	            // Form validation
-	            if(!/^[a-zA-Z]{2,30}$/.test(firstName)) {
-	                showMessage('First name must be 2-30 characters long and contain only letters', 'error');
-	                return;
-	            }
-	            
-	            if(!/^[a-zA-Z]{2,30}$/.test(lastName)) {
-	                showMessage('Last name must be 2-30 characters long and contain only letters', 'error');
-	                return;
-	            }
-	            
-	            if(!/^[a-zA-Z0-9_]{4,20}$/.test(username)) {
-	                showMessage('Username must be 4-20 characters and can contain letters, numbers, and underscores only', 'error');
-	                return;
-	            }
-	            
-	            if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-	                showMessage('Please enter a valid email address', 'error');
-	                return;
-	            }
-	            
-	            if(!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password)) {
-	                showMessage('Password must contain uppercase, lowercase, number and special character', 'error');
-	                return;
-	            }
-	            
-	            if(password !== confirmPassword) {
-	                showMessage('Passwords do not match', 'error');
-	                return;
-	            }
-	
-	            // If validation passes, submit the form
-	            this.submit();
-	        });
-	    });
-	
-	    // Check for messages and handle redirect on page load
-	    window.onload = function() {
-	        const successMessage = "${successMessage}";
-	        const redirectUrl = "${redirectUrl}";
-	        
-	        if (successMessage) {
-	            showMessage(successMessage, 'success');
-	            const form = document.getElementById('signupForm');
-	            if (form) {
-	                form.style.pointerEvents = 'none';
-	                form.style.opacity = '0.7';
-	            }
-	            delayedRedirect(redirectUrl || `${pageContext.request.contextPath}/pages/public/login.jsp`, 3000);
-	        }
-	
-	        const urlParams = new URLSearchParams(window.location.search);
-	        const errorMsg = urlParams.get('error');
-	        if (errorMsg) {
-	            showMessage(decodeURIComponent(errorMsg), 'error');
-	        }
-	    };
-	</script>
+    <script>
+        // Completely revised toast notification with direct styling
+        function showToast(message, type) {
+            if (!message || message.trim() === '') {
+                return; // Don't show empty messages
+            }
+            
+            console.log("Showing toast:", type, message); // Debug log
+            
+            // Find or create toast container
+            let toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toastContainer';
+                
+                // Apply container styles directly
+                Object.assign(toastContainer.style, {
+                    position: 'fixed',
+                    top: '12px',
+                    right: '12px',
+                    zIndex: '10000',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    maxWidth: '380px',
+                    width: '85%'
+                });
+                
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            
+            // Set base toast styles
+            Object.assign(toast.style, {
+                padding: '10px 15px',
+                borderRadius: '6px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                transform: 'translateY(-100%)',
+                opacity: '0',
+                transition: 'transform 0.4s ease-out, opacity 0.4s ease-out',
+                marginBottom: '8px'
+            });
+            
+            // Apply type-specific styles
+            if (type === 'success') {
+                // Success toast
+                Object.assign(toast.style, {
+                    backgroundColor: '#E6FFF2', 
+                    borderLeft: '3px solid #00B894'
+                });
+            } else {
+                // Error toast
+                Object.assign(toast.style, {
+                    backgroundColor: '#FFE9EC',
+                    borderLeft: '3px solid #FF4757'
+                });
+            }
+            
+            // Create icon
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle');
+            
+            // Set icon styles
+            Object.assign(icon.style, {
+                fontSize: '16px',
+                marginRight: '10px',
+                flexShrink: '0',
+                color: type === 'success' ? '#00B894' : '#FF4757'
+            });
+            
+            // Create message text
+            const textSpan = document.createElement('span');
+            textSpan.textContent = message;
+            
+            // Set text styles
+            Object.assign(textSpan.style, {
+                fontSize: '12px',
+                lineHeight: '1.3',
+                flexGrow: '1',
+                fontWeight: '500',
+                color: type === 'success' ? '#00725C' : '#C0392B'
+            });
+            
+            // Assemble toast
+            toast.appendChild(icon);
+            toast.appendChild(textSpan);
+            
+            // Add to container
+            toastContainer.appendChild(toast);
+            
+            // Force reflow
+            void toast.offsetWidth;
+            
+            // Show toast with animation
+            setTimeout(() => {
+                toast.style.transform = 'translateY(0)';
+                toast.style.opacity = '1';
+            }, 10);
+            
+            // Remove after delay
+            setTimeout(() => {
+                toast.style.transform = 'translateY(-100%)';
+                toast.style.opacity = '0';
+                
+                setTimeout(() => {
+                    toast.remove();
+                    if (toastContainer.children.length === 0) {
+                        toastContainer.remove();
+                    }
+                }, 400);
+            }, 4000);
+        }
+    
+        function delayedRedirect(url, delay) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    window.location.href = url;
+                    resolve();
+                }, delay);
+            });
+        }
+    
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('signupForm');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const firstName = document.getElementById('firstName').value.trim();
+                const lastName = document.getElementById('lastName').value.trim();
+                const username = document.getElementById('username').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                // Form validation
+                if(!/^[a-zA-Z]{2,30}$/.test(firstName)) {
+                    showToast('First name must be 2-30 characters long and contain only letters', 'error');
+                    return;
+                }
+                
+                if(!/^[a-zA-Z]{2,30}$/.test(lastName)) {
+                    showToast('Last name must be 2-30 characters long and contain only letters', 'error');
+                    return;
+                }
+                
+                if(!/^[a-zA-Z0-9_]{4,20}$/.test(username)) {
+                    showToast('Username must be 4-20 characters and can contain letters, numbers, and underscores only', 'error');
+                    return;
+                }
+                
+                if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    showToast('Please enter a valid email address', 'error');
+                    return;
+                }
+                
+                if(!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password)) {
+                    showToast('Password must contain uppercase, lowercase, number and special character', 'error');
+                    return;
+                }
+                
+                if(password !== confirmPassword) {
+                    showToast('Passwords do not match', 'error');
+                    return;
+                }
+    
+                // If validation passes, submit the form
+                this.submit();
+            });
+            
+            // Test the toast system with example messages
+            // Uncomment these to test:
+            // showToast('This is a success test message', 'success');
+            // setTimeout(() => showToast('This is an error test message', 'error'), 1000);
+        });
+    
+        // Check for messages and handle redirect on page load
+        window.onload = function() {
+            console.log("Window loaded"); // Debug log
+            
+            const successMessage = "${successMessage}";
+            const redirectUrl = "${redirectUrl}";
+            
+            console.log("Success message:", successMessage); // Debug log
+            
+            if (successMessage && successMessage.trim() !== "") {
+                showToast(successMessage, 'success');
+                const form = document.getElementById('signupForm');
+                if (form) {
+                    form.style.pointerEvents = 'none';
+                    form.style.opacity = '0.7';
+                }
+                delayedRedirect(redirectUrl || `${pageContext.request.contextPath}/pages/public/login.jsp`, 3000);
+            }
+    
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorMsg = urlParams.get('error');
+            
+            console.log("Error message from URL:", errorMsg); // Debug log
+            
+            if (errorMsg) {
+                showToast(decodeURIComponent(errorMsg), 'error');
+            }
+        };
+    </script>
 </body>
 </html>

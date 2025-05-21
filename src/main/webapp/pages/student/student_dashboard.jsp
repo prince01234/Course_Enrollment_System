@@ -26,6 +26,9 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/student/student_dashboard.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/student_sidebar.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/update_password.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/update_profile.css">
+    <!-- Add delete account CSS -->
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/delete_account.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -36,6 +39,12 @@
         
         <!-- Include the password update modal -->
         <%@ include file="/pages/components/update_password.jsp" %>
+        
+        <!-- Include the profile update modal -->
+        <%@ include file="/pages/components/update_profile.jsp" %>
+        
+        <!-- Include the delete account modal -->
+        <%@ include file="/pages/components/delete_account.jsp" %>
         
         <div class="main-content">
             <div class="header">
@@ -58,7 +67,7 @@
                         <p class="student-id"><i class="fas fa-id-card"></i> Student ID: STU<%= String.format("%07d", user.getUserId()) %></p>
                     </div>
                     <div class="profile-actions">
-                        <button class="edit-profile-btn" onclick="location.href='<%= request.getContextPath() %>/pages/student/edit_profile.jsp'">
+                        <button class="edit-profile-btn" onclick="openProfileModal()">
                             <i class="fas fa-edit"></i>
                             Edit Profile
                         </button>
@@ -104,7 +113,7 @@
                         <i class="fas fa-key"></i>
                         Update Password
                     </button>
-                    <button class="delete-account-btn">
+                    <button class="delete-account-btn" onclick="showDeleteModal('<%= user.getUserId() %>', 'Are you sure you want to permanently delete your account? This will remove all your course enrollments and data.', '<%= request.getContextPath() %>/DeleteAccountServlet', {title: 'Delete Your Account', buttonText: 'Delete My Account', isAccountDeletion: true, params: {confirmDelete: 'true'}})">
                         <i class="fas fa-trash-alt"></i>
                         Delete Account
                     </button>

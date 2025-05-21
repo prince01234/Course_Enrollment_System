@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin/admin_dashboard.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/admin_sidebar.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/update_password.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/update_profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -69,7 +70,7 @@
                         </div>
                     </div>
                     <div class="profile-actions">
-                        <button class="btn btn-primary" onclick="location.href='<%= request.getContextPath() %>/pages/admin/edit_profile.jsp'">
+                        <button class="btn btn-primary" onclick="openProfileModal()">
                             <i class="fas fa-edit"></i> Edit Profile
                         </button>
                         <button class="btn btn-secondary" onclick="showPasswordModal()">
@@ -181,6 +182,9 @@
 
     <!-- Include the password update modal -->
     <%@ include file="/pages/components/update_password.jsp" %>
+    
+    <!-- Include the profile update modal -->
+    <%@ include file="/pages/components/update_profile.jsp" %>
 
     <script>
     function confirmDelete() {

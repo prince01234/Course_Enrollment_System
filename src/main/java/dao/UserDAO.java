@@ -18,137 +18,137 @@ import enums.Role;
 public class UserDAO {
     
     // Creating new user 
-	public static int createUser(User user) {
+    public static int createUser(User user) {
 
 //	    String hashedPassword = user.getPassword();
 //	    user.setPassword(hashedPassword);
 
-	    String sql = "INSERT INTO users (first_name, last_name, username, email, password, address, phone_number, profile_picture, role) " +
-	                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (first_name, last_name, username, email, password, address, phone_number, profile_picture, role) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-	    try (Connection conn = DBConnection.getConnection();
-	         PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-	        ps.setString(1, user.getFirstName());
-	        ps.setString(2, user.getLastName());
-	        ps.setString(3, user.getUsername());
-	        ps.setString(4, user.getEmail());
-	        ps.setString(5, user.getPassword());
+            ps.setString(1, user.getFirstName());
+            ps.setString(2, user.getLastName());
+            ps.setString(3, user.getUsername());
+            ps.setString(4, user.getEmail());
+            ps.setString(5, user.getPassword());
 
-	        // Handle address (nullable)
-	        if (user.getAddress() != null) {
-	            ps.setString(6, user.getAddress());
-	        } else {
-	            ps.setNull(6, Types.VARCHAR);
-	        }
+            // Handle address (nullable)
+            if (user.getAddress() != null) {
+                ps.setString(6, user.getAddress());
+            } else {
+                ps.setNull(6, Types.VARCHAR);
+            }
 
-	        // Handle phone number (nullable)
-	        if (user.getPhoneNumber() != null) {
-	            ps.setString(7, user.getPhoneNumber());
-	        } else {
-	            ps.setNull(7, Types.VARCHAR);
-	        }
+            // Handle phone number (nullable)
+            if (user.getPhoneNumber() != null) {
+                ps.setString(7, user.getPhoneNumber());
+            } else {
+                ps.setNull(7, Types.VARCHAR);
+            }
 
-	        // Handle profile picture (nullable)
-	        if (user.getProfilePicture() != null) {
-	            ps.setBytes(8, user.getProfilePicture());
-	        } else {
-	            ps.setNull(8, Types.BLOB);
-	        }
+            // Handle profile picture (nullable)
+            if (user.getProfilePicture() != null) {
+                ps.setBytes(8, user.getProfilePicture());
+            } else {
+                ps.setNull(8, Types.BLOB);
+            }
 
-	        ps.setString(9, user.getRole().toString()); 
+            ps.setString(9, user.getRole().toString()); 
 
-	        // Execute Update
-	        int affectedRows = ps.executeUpdate();
+            // Execute Update
+            int affectedRows = ps.executeUpdate();
 
-	        // Retrieve Auto-Generated User ID
-	        if (affectedRows > 0) {
-	            try (ResultSet rs = ps.getGeneratedKeys()) {
-	                if (rs.next()) {
-	                    return rs.getInt(1); // Return the new user ID
-	                }
-	            }
-	        }
-	    } catch (SQLException e) {
-	        System.err.println("Error creating user: " + e.getMessage());
-	        e.printStackTrace();
-	    }
-	    return -1; // Return -1 if failed to create user
-	}
+            // Retrieve Auto-Generated User ID
+            if (affectedRows > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        return rs.getInt(1); // Return the new user ID
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error creating user: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return -1; // Return -1 if failed to create user
+    }
     
-	public static User validateUser(String usernameOrEmail, String password) {
-	    String sql = "SELECT * FROM users WHERE email = ? OR username = ?";
-	    try (Connection conn = DBConnection.getConnection();
-	         PreparedStatement ps = conn.prepareStatement(sql)) {
+    public static User validateUser(String usernameOrEmail, String password) {
+        String sql = "SELECT * FROM users WHERE email = ? OR username = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-	        ps.setString(1, usernameOrEmail);
-	        ps.setString(2, usernameOrEmail);
-	        
-	        System.out.println("Executing query for user: " + usernameOrEmail);
-	        ResultSet rs = ps.executeQuery();
-	        
-	        if (rs.next()) {
-	            String storedHashedPassword = rs.getString("password");
-	            System.out.println("Found user in database");
-	            System.out.println("Stored hash: " + storedHashedPassword);
-	            
-	            boolean passwordVerified = PasswordHasher.verifyPassword(password, storedHashedPassword);
-	            System.out.println("Password verification result: " + passwordVerified);
+            ps.setString(1, usernameOrEmail);
+            ps.setString(2, usernameOrEmail);
+            
+            System.out.println("Executing query for user: " + usernameOrEmail);
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                String storedHashedPassword = rs.getString("password");
+                System.out.println("Found user in database");
+                System.out.println("Stored hash: " + storedHashedPassword);
+                
+                boolean passwordVerified = PasswordHasher.verifyPassword(password, storedHashedPassword);
+                System.out.println("Password verification result: " + passwordVerified);
 
-	            if (passwordVerified) {
-	                User user = new User();
-	                user.setUserId(rs.getInt("user_id"));
-	                user.setFirstName(rs.getString("first_name"));
-	                user.setLastName(rs.getString("last_name"));
-	                user.setUsername(rs.getString("username"));
-	                user.setEmail(rs.getString("email"));
-	                user.setPassword(storedHashedPassword);
-	                user.setAddress(rs.getString("address"));
-	                user.setPhoneNumber(rs.getString("phone_number"));
-	                
-	                String roleStr = rs.getString("role");
-	                System.out.println("Role from database: " + roleStr);
-	                
-	                if (roleStr != null) {
-	                    try {
-	                        Role role = Role.valueOf(roleStr.toUpperCase());
-	                        user.setRole(role);
-	                        System.out.println("Role set to: " + role);
-	                    } catch (IllegalArgumentException e) {
-	                        System.err.println("Invalid role in database: " + roleStr);
-	                        return null;
-	                    }
-	                } else {
-	                    System.err.println("Role is null in database");
-	                    return null;
-	                }
+                if (passwordVerified) {
+                    User user = new User();
+                    user.setUserId(rs.getInt("user_id"));
+                    user.setFirstName(rs.getString("first_name"));
+                    user.setLastName(rs.getString("last_name"));
+                    user.setUsername(rs.getString("username"));
+                    user.setEmail(rs.getString("email"));
+                    user.setPassword(storedHashedPassword);
+                    user.setAddress(rs.getString("address"));
+                    user.setPhoneNumber(rs.getString("phone_number"));
+                    
+                    String roleStr = rs.getString("role");
+                    System.out.println("Role from database: " + roleStr);
+                    
+                    if (roleStr != null) {
+                        try {
+                            Role role = Role.valueOf(roleStr.toUpperCase());
+                            user.setRole(role);
+                            System.out.println("Role set to: " + role);
+                        } catch (IllegalArgumentException e) {
+                            System.err.println("Invalid role in database: " + roleStr);
+                            return null;
+                        }
+                    } else {
+                        System.err.println("Role is null in database");
+                        return null;
+                    }
 
-	                byte[] profilePicture = rs.getBytes("profile_picture");
-	                if (profilePicture != null) {
-	                    user.setProfilePicture(profilePicture);
-	                }
+                    byte[] profilePicture = rs.getBytes("profile_picture");
+                    if (profilePicture != null) {
+                        user.setProfilePicture(profilePicture);
+                    }
 
-	                user.setCreatedAt(rs.getTimestamp("created_at"));
-	                
-	                System.out.println("User object created successfully: " + user);
-	                return user;
-	            } else {
-	                System.out.println("Password verification failed");
-	            }
-	        } else {
-	            System.out.println("No user found with username/email: " + usernameOrEmail);
-	        }
-	    } catch (SQLException e) {
-	        System.err.println("Database error during validation: " + e.getMessage());
-	        e.printStackTrace();
-	    } catch (Exception e) {
-	        System.err.println("Unexpected error during validation: " + e.getMessage());
-	        e.printStackTrace();
-	    }
-	    return null;
-	}
+                    user.setCreatedAt(rs.getTimestamp("created_at"));
+                    
+                    System.out.println("User object created successfully: " + user);
+                    return user;
+                } else {
+                    System.out.println("Password verification failed");
+                }
+            } else {
+                System.out.println("No user found with username/email: " + usernameOrEmail);
+            }
+        } catch (SQLException e) {
+            System.err.println("Database error during validation: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Unexpected error during validation: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
     
- // Method to update user password 
+    // Method to update user password 
     public static boolean updatePassword(int userId, String currentPassword, String newPassword) {
         // First verify the current password
         String verifyQuery = "SELECT password FROM users WHERE user_id = ?";
@@ -186,30 +186,6 @@ public class UserDAO {
         }
         
         return false; // Return false if password update fails
-    }
-    
-    // Method to update profile picture
-    public static boolean updateProfilePicture(int userId, byte[] profilePicture) {
-        String sql = "UPDATE users SET profile_picture = ? WHERE user_id = ?";
-        
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            if (profilePicture != null) {
-                ps.setBytes(1, profilePicture);
-            } else {
-                ps.setNull(1, Types.BLOB);
-            }
-            
-            ps.setInt(2, userId);
-            
-            int rowsAffected = ps.executeUpdate();
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            System.err.println("Error updating profile picture: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
     }
     
     // Get user by ID
@@ -344,7 +320,7 @@ public class UserDAO {
         return users;
     }
 
- // Get total users by role
+    // Get total users by role
     public static int getTotalUsersByRole(String role) {
         String sql = "SELECT COUNT(*) FROM users WHERE role = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -361,27 +337,52 @@ public class UserDAO {
         return 0;
     }
     
-    // Update user details
-    public static boolean updateUser(User user) {
-        String sql = "UPDATE users SET first_name = ?, last_name = ?, email = ?, " +
-                    "address = ?, phone_number = ? WHERE user_id = ?";
+    /**
+     Updates user profile information including optional profile picture
+     */
+    public static boolean updateUserProfile(User user, byte[] newProfilePicture, boolean removeProfilePicture) {
+        String sql = "UPDATE users SET first_name = ?, last_name = ?, address = ?, " +
+                    "phone_number = ?, profile_picture = ? WHERE user_id = ?";
         
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
+            // Set basic profile information
             ps.setString(1, user.getFirstName());
             ps.setString(2, user.getLastName());
-            ps.setString(3, user.getEmail());
-            ps.setString(4, user.getAddress());
-            ps.setString(5, user.getPhoneNumber());
+            
+            // Handle nullable fields
+            if (user.getAddress() != null && !user.getAddress().trim().isEmpty()) {
+                ps.setString(3, user.getAddress());
+            } else {
+                ps.setNull(3, Types.VARCHAR);
+            }
+            
+            if (user.getPhoneNumber() != null && !user.getPhoneNumber().trim().isEmpty()) {
+                ps.setString(4, user.getPhoneNumber());
+            } else {
+                ps.setNull(4, Types.VARCHAR);
+            }
+            
+            // Handle profile picture
+            if (removeProfilePicture) {
+                ps.setNull(5, Types.BLOB);
+            } else if (newProfilePicture != null) {
+                ps.setBytes(5, newProfilePicture);
+            } else {
+                // Keep existing picture - set parameter from user object or null if not present
+                ps.setBytes(5, user.getProfilePicture());
+            }
+            
             ps.setInt(6, user.getUserId());
             
-            return ps.executeUpdate() > 0;
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
         } catch (SQLException e) {
-            System.err.println("Error updating user: " + e.getMessage());
+            System.err.println("Error updating user profile: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     // Get recently registered users
@@ -405,7 +406,7 @@ public class UserDAO {
         return users;
     }
     
- // Get active students count
+    // Get active students count
     public static int getActiveStudentsCount() {
         String sql = "SELECT COUNT(DISTINCT u.user_id) " +
                      "FROM users u " +
@@ -425,8 +426,6 @@ public class UserDAO {
         return 0;
     }
     
-    
-    
     // Helper method to map ResultSet to User object
     private static User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
@@ -442,5 +441,24 @@ public class UserDAO {
         user.setCreatedAt(rs.getTimestamp("created_at"));
 
         return user;
+    }
+    
+    /**
+     Deletes a user, relying on database CASCADE DELETE constraints
+     */
+    public static boolean deleteUserWithCascade(int userId) {
+        String sql = "DELETE FROM users WHERE user_id = ?";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, userId);
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Error deleting user: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 }

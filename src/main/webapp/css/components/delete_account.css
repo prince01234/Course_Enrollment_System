@@ -1,0 +1,114 @@
+@charset "UTF-8";
+/* Delete Modal Styles */
+.delete-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.delete-modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    width: 400px;
+    max-width: 90%;
+    animation: deleteModalFadeIn 0.3s ease;
+    border-top: 4px solid #ff3b30;
+}
+
+@keyframes deleteModalFadeIn {
+    from {opacity: 0; transform: translateY(-20px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+.delete-modal-header {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.delete-modal-header h3 {
+    margin: 8px 0 0 0;
+    color: #333;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.warning-icon {
+    color: #ff3b30;
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.delete-modal-body {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.delete-modal-body p {
+    margin: 0 0 10px 0;
+    color: #555;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.delete-warning {
+    color: #ff3b30 !important;
+    font-size: 14px !important;
+    font-weight: 500;
+}
+
+.delete-modal-footer {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.btn-cancel, .btn-delete {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-cancel {
+    background-color: #f1f1f1;
+    color: #555;
+}
+
+.btn-cancel:hover {
+    background-color: #e0e0e0;
+}
+
+.btn-delete {
+    background-color: #ff3b30;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #d9342b;
+}
+
+/* Animation for delete button to draw attention */
+@keyframes deleteButtonPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.btn-delete:focus {
+    animation: deleteButtonPulse 1s ease-in-out;
+    outline: none;
+}
