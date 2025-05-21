@@ -25,6 +25,7 @@
     <title>Student Dashboard - EduEnroll</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/student/student_dashboard.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/student_sidebar.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/update_password.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -32,6 +33,9 @@
     <div class="container">
         <!-- Include the sidebar component -->
         <%@ include file="/pages/components/student_sidebar.jsp" %>
+        
+        <!-- Include the password update modal -->
+        <%@ include file="/pages/components/update_password.jsp" %>
         
         <div class="main-content">
             <div class="header">
@@ -96,7 +100,7 @@
                 </div>
                 
                 <div class="account-actions">
-                    <button class="update-password-btn" onclick="location.href='<%= request.getContextPath() %>/pages/student/change_password.jsp'">
+                    <button class="update-password-btn" onclick="showPasswordModal()">
                         <i class="fas fa-key"></i>
                         Update Password
                     </button>

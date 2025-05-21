@@ -25,13 +25,14 @@
     <title>EduEnroll Admin Dashboard</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin/admin_dashboard.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/admin_sidebar.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/update_password.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <!-- Sidebar -->
-		<%@ include file="/pages/components/admin_sidebar.jsp" %>
+        <%@ include file="/pages/components/admin_sidebar.jsp" %>
 
         <!-- Main Content -->
         <div class="main-content">
@@ -71,7 +72,7 @@
                         <button class="btn btn-primary" onclick="location.href='<%= request.getContextPath() %>/pages/admin/edit_profile.jsp'">
                             <i class="fas fa-edit"></i> Edit Profile
                         </button>
-                        <button class="btn btn-secondary" onclick="location.href='<%= request.getContextPath() %>/pages/admin/change_password.jsp'">
+                        <button class="btn btn-secondary" onclick="showPasswordModal()">
                             <i class="fas fa-key"></i> Update Password
                         </button>
                     </div>
@@ -177,6 +178,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Include the password update modal -->
+    <%@ include file="/pages/components/update_password.jsp" %>
 
     <script>
     function confirmDelete() {
