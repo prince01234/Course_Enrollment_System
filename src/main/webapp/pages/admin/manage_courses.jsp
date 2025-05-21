@@ -12,101 +12,12 @@
     <title>EduEnroll - Manage Courses</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin/manage_courses.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/admin_sidebar.css">
+    <!-- Include the component CSS files -->
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/addCourseModal.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/deleteCourseModal.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/toggleStatus.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Updated Modal Styles for Center Positioning */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            align-items: center;
-            justify-content: center;
-            
-        }
-
-        .modal-content {
-            background-color: #f8f8f5; /* Light cream/beige color */
-            width: 80%;
-            max-width: 800px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            animation: modalFadeIn 0.4s ease;
-            position: relative;
-            padding: 0;
-            margin: 0;
-        }
-
-        @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95) translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        .modal-header {
-            padding: 20px 25px;
-            background-color: #f0f0e8;
-            border-radius: 12px 12px 0 0;
-            margin-bottom: 0;
-        }
-
-        .form-grid {
-            padding: 25px;
-        }
-
-        .form-actions {
-            padding: 15px 25px;
-            margin-top: 0;
-            background-color: #f5f5f0;
-            border-radius: 0 0 12px 12px;
-        }
-
-        /* Button styles */
-        .btn-primary, .btn-secondary {
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 15px;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary {
-            background-color: #4361ee;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #3651d4;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
-        }
-
-        .btn-secondary {
-            background-color: #f2f2f2;
-            color: #555;
-        }
-
-        .btn-secondary:hover {
-            background-color: #e6e6e6;
-            transform: translateY(-2px);
-        }
-        
+<style>
         /* Loading spinner */
         .spinner {
             display: none;
@@ -127,15 +38,92 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-    </style>
+
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            min-width: 300px;
+            max-width: 400px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .toast-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .toast-container.success {
+            border-left: 4px solid #4CAF50;
+        }
+
+        .toast-container.error {
+            border-left: 4px solid #F44336;
+        }
+
+        .toast-content i {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .toast-content i.fa-check-circle {
+            color: #4CAF50;
+        }
+
+        .toast-content i.fa-exclamation-circle {
+            color: #F44336;
+        }
+
+        #toast-message {
+            flex-grow: 1;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .toast-close {
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        .toast-close:hover {
+            color: #333;
+        }
+</style>
 </head>
 <body>
+    <!-- Success/Error Notification Toast -->
+    <div id="toast" class="toast-container" style="display: none;">
+        <div class="toast-content">
+            <i id="toast-icon" class="fas"></i>
+            <div id="toast-message"></div>
+            <span class="toast-close" onclick="closeToast()">&times;</span>
+        </div>
+    </div>
+    
+    <!-- Include Toggle Status Modal Component -->
+    <%@ include file="/pages/components/toggleStatus.jsp" %>
+
     <!-- Loading spinner for AJAX requests -->
     <div class="spinner" id="loadingSpinner"></div>
     
     <div class="container">
         <!-- Sidebar -->
-		<%@ include file="/pages/components/admin_sidebar.jsp" %>
+        <%@ include file="/pages/components/admin_sidebar.jsp" %>
 
         <!-- Main Content -->
         <div class="main-content">
@@ -222,15 +210,15 @@
                         <label for="filterLevel" style="display: block; margin-bottom: 5px; font-weight: 600;">Level:</label>
                         <select id="filterLevel" class="filter-select" style="width: 100%; padding: 8px;">
                             <option value="">All Levels</option>
-                            <option value="ACTIVE">Beginner</option>
-                            <option value="CANCELLED">Intermediate</option>
-                            <option value="COMPLETED">Advanced</option>
+                            <option value="BEGINNER">Beginner</option>
+                            <option value="INTERMEDIATE">Intermediate</option>
+                            <option value="ADVANCED">Advanced</option>
                         </select>
                     </div>
                     <div>
                         <label for="filterStatus" style="display: block; margin-bottom: 5px; font-weight: 600;">Status:</label>
                         <select id="filterStatus" class="filter-select" style="width: 100%; padding: 8px;">
-                            <option value="">All Statuses</option>
+                            <option value="">All Status</option>
                             <option value="true">Active</option>
                             <option value="false">Inactive</option>
                         </select>
@@ -265,13 +253,13 @@
                     <c:otherwise>
                         <c:forEach var="course" items="${enhancedCourses}">
                             <div class="course-item" data-course-id="${course.courseId}" data-title="${fn:escapeXml(course.courseTitle)}" 
-                                 data-status="${course.status}" data-duration="${course.duration}" data-is-open="${course.open}">
+                                 data-level="${course.level}" data-duration="${course.duration}" data-status="${course.status}">
                                 <div class="course-header">
                                     <h3>${course.courseTitle}</h3>
-                                    <div class="status-toggle ${course.open ? 'active' : 'inactive'}">
-                                        <span class="status-label">${course.open ? 'Active' : 'Inactive'}</span>
+                                    <div class="status-toggle ${course.status == 'ACTIVE' ? 'active' : 'inactive'}">
+                                        <span class="status-label">${course.status == 'ACTIVE' ? 'Active' : 'Inactive'}</span>
                                         <label class="toggle-switch">
-                                            <input type="checkbox" ${course.open ? 'checked' : ''} onchange="toggleCourseStatus(${course.courseId}, this.checked)">
+                                            <input type="checkbox" ${course.status == 'ACTIVE' ? 'checked' : ''} onchange="toggleCourseStatus(${course.courseId}, this.checked)">
                                             <span class="slider round"></span>
                                         </label>
                                     </div>
@@ -293,9 +281,9 @@
                                         <span class="detail-label">Level</span>
                                         <span class="detail-value">
                                             <c:choose>
-                                                <c:when test="${course.status == 'ACTIVE'}">Beginner</c:when>
-                                                <c:when test="${course.status == 'CANCELLED'}">Intermediate</c:when>
-                                                <c:when test="${course.status == 'COMPLETED'}">Advanced</c:when>
+                                                <c:when test="${course.level == 'BEGINNER'}">Beginner</c:when>
+                                                <c:when test="${course.level == 'INTERMEDIATE'}">Intermediate</c:when>
+                                                <c:when test="${course.level == 'ADVANCED'}">Advanced</c:when>
                                                 <c:otherwise>Unknown</c:otherwise>
                                             </c:choose>
                                         </span>
@@ -304,19 +292,19 @@
                                 <div class="course-footer">
                                     <div class="enrollment-info">
                                         <i class="fas fa-user-graduate"></i>
-                                        <span>${course.currentEnrollment} Enrolled</span>
+                                        <span>${course.enrollmentCount} Enrolled</span>
                                     </div>
                                     <div class="update-info">
                                         <i class="fas fa-clock"></i>
                                         <span>Updated <fmt:formatDate value="${course.lastUpdated}" pattern="MM/dd/yyyy" /></span>
                                     </div>
-									<div class="course-actions">
-									    <button class="action-btn view" onclick="viewCourseDetails(${course.courseId})"><i class="fas fa-eye"></i></button>
-									    <button class="action-btn edit" onclick="editCourse(${course.courseId})"><i class="fas fa-pen"></i></button>
-									    <button class="action-btn delete" data-course-id="${course.courseId}" data-course-title="${course.courseTitle}">
-									        <i class="fas fa-trash"></i>
-									    </button>
-									</div>
+                                    <div class="course-actions">
+                                        <button class="action-btn view" onclick="viewCourseDetails(${course.courseId})"><i class="fas fa-eye"></i></button>
+                                        <button class="action-btn edit" onclick="editCourse(${course.courseId})"><i class="fas fa-pen"></i></button>
+                                        <button class="action-btn delete" data-course-id="${course.courseId}" data-course-title="${fn:escapeXml(course.courseTitle)}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </c:forEach>
@@ -326,86 +314,9 @@
         </div>
     </div>
   
-    <!-- Add Course Modal -->
-    <div id="addCourseModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-plus-circle"></i> Add New Course</h2>
-                <span class="close">&times;</span>
-            </div>
-            <form id="addCourseForm" action="<%= request.getContextPath() %>/AddCourseServlet" method="POST">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="courseTitle"><i class="fas fa-bookmark"></i> Course Title</label>
-                        <input type="text" id="courseTitle" name="courseTitle" placeholder="Enter course title" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="status"><i class="fas fa-layer-group"></i> Course Level</label>
-                        <select id="status" name="status" required>
-                            <option value="ACTIVE">Beginner</option>
-                            <option value="CANCELLED">Intermediate</option>
-                            <option value="COMPLETED">Advanced</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="duration"><i class="fas fa-calendar-week"></i> Duration (weeks)</label>
-                        <input type="number" id="duration" name="duration" min="1" placeholder="e.g. 8" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="credits"><i class="fas fa-award"></i> Credit Hours</label>
-                        <input type="number" id="credits" name="credits" min="1" placeholder="e.g. 3" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="minStudents"><i class="fas fa-user-friends"></i> Minimum Students</label>
-                        <input type="number" id="minStudents" name="minStudents" min="1" placeholder="e.g. 10" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="maxStudents"><i class="fas fa-users"></i> Maximum Students</label>
-                        <input type="number" id="maxStudents" name="maxStudents" min="1" placeholder="e.g. 30" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="cost"><i class="fas fa-dollar-sign"></i> Course Cost</label>
-                        <input type="number" id="cost" name="cost" min="0" step="0.01" placeholder="e.g. 299.99" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label><i class="fas fa-toggle-on"></i> Course Status</label>
-                        <div style="display: flex; align-items: center; margin-top: 8px;">
-                            <label class="toggle-switch" style="margin-right: 10px;">
-                                <input type="checkbox" id="isOpen" name="isOpen" checked>
-                                <span class="slider round"></span>
-                            </label>
-                            <span id="openStatus">Active</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Hidden field to store current user's ID as instructor -->
-                    <input type="hidden" name="instructorId" value="${sessionScope.user.userId}">
-
-                    <div class="form-group full-width">
-                        <label for="description"><i class="fas fa-align-left"></i> Course Description</label>
-                        <textarea id="description" name="description" rows="4" 
-                            placeholder="Enter a detailed description of the course content and objectives" required></textarea>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" class="btn-primary">
-                        <i class="fas fa-save"></i> Create Course
-                    </button>
-                    <button type="button" class="btn-secondary" onclick="closeModal()">
-                        <i class="fas fa-times"></i> Cancel
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- Include Modal Components -->
+    <%@ include file="/pages/components/addCourseModal.jsp" %>
+    <%@ include file="/pages/components/deleteCourseModal.jsp" %>
     
     <!-- View Course Details Modal -->
     <div id="viewCourseModal" class="modal">
@@ -426,27 +337,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header" style="background-color: #ffebee;">
-                <h2><i class="fas fa-exclamation-triangle" style="color: #e53935;"></i> Delete Course</h2>
-                <span class="close" onclick="closeDeleteModal()">&times;</span>
-            </div>
-            <div style="padding: 20px;">
-                <p id="deleteConfirmText">Are you sure you want to delete this course?</p>
-                <div class="form-actions">
-                    <button type="button" id="confirmDeleteBtn" class="btn-primary" style="background-color: #e53935;">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                    <button type="button" class="btn-secondary" onclick="closeDeleteModal()">
-                        <i class="fas fa-times"></i> Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
 <script>
     // Define context path at the beginning to use throughout the script
@@ -455,10 +345,11 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Modal elements
         const modal = document.getElementById('addCourseModal');
+        const deleteModal = document.getElementById('deleteModal');
         const addBtn = document.getElementById('addCourseBtn');
-        const closeBtn = document.querySelector('.close');
+        const closeBtn = document.querySelector('#addCourseModal .close');
         
-        // Modal functions
+        // Modal functions for add course
         window.openModal = function() {
             console.log("Opening modal function called");
             modal.style.display = 'flex';
@@ -472,43 +363,175 @@
             document.getElementById('addCourseForm').reset();
         }
         
-        // Event listeners
+        // Event listeners for add course
         addBtn.addEventListener('click', openModal);
         closeBtn.addEventListener('click', closeModal);
         
-        // Add delete button event listeners
+        // Delete button event listeners 
         document.querySelectorAll('.action-btn.delete').forEach(btn => {
             btn.addEventListener('click', function() {
                 const courseId = this.getAttribute('data-course-id');
-                const courseTitle = this.getAttribute('data-course-title');
-                console.log("Delete clicked for course:", courseId, "with title:", courseTitle);
-                confirmDelete(courseId, courseTitle);
+                console.log("Delete clicked for course ID:", courseId);
+                
+                // Set the hidden input value for the form
+                document.getElementById('courseIdToDelete').value = courseId;
+                
+                // Generic confirmation message without course name
+                document.getElementById('deleteConfirmText').textContent = 
+                    "Are you sure you want to delete this course?";
+                
+                // Show the delete confirmation modal
+                deleteModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
             });
         });
         
-        // Close when clicking outside modal
+        // Close when clicking outside add modal
         window.addEventListener('click', function(event) {
             if (event.target === modal) {
                 closeModal();
             }
+            
+            // Close when clicking outside delete modal
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            }
         });
         
-        // Form validation
+        // Form validation for add course
         document.getElementById('addCourseForm').addEventListener('submit', function(e) {
             const minStudents = parseInt(document.getElementById('minStudents').value);
             const maxStudents = parseInt(document.getElementById('maxStudents').value);
             
             if (minStudents > maxStudents) {
                 e.preventDefault();
-                alert('Minimum students cannot be greater than maximum students');
+                showToast('Minimum students cannot be greater than maximum students', 'error');
             }
         });
         
-        // Toggle course status label
-        document.getElementById('isOpen').addEventListener('change', function() {
-            document.getElementById('openStatus').textContent = this.checked ? 'Active' : 'Inactive';
+        // Show spinner when submitting delete form
+        document.getElementById('deleteForm').addEventListener('submit', function() {
+            showSpinner();
         });
+        
+        // Show spinner when submitting add course form
+        document.getElementById('addCourseForm').addEventListener('submit', function() {
+            if (!this.checkValidity()) return; // Don't show spinner if form is invalid
+            if (parseInt(document.getElementById('minStudents').value) > parseInt(document.getElementById('maxStudents').value)) return;
+            showSpinner();
+        });
+        
+        // Setup close buttons for delete modal
+        document.querySelectorAll('#deleteModal .close, #deleteModal .btn-secondary').forEach(btn => {
+            btn.addEventListener('click', closeDeleteModal);
+        });
+        
+        // Safely handle the isOpen toggle if it exists
+        try {
+            const isOpenElement = document.getElementById('isOpen');
+            const openStatusElement = document.getElementById('openStatus');
+            
+            if (isOpenElement && openStatusElement) {
+                isOpenElement.addEventListener('change', function() {
+                    openStatusElement.textContent = this.checked ? 'Active' : 'Inactive';
+                });
+            }
+        } catch (e) {
+            console.error("Error setting up isOpen listener:", e);
+        }
+        
+        // Check for URL parameters for messages
+        const urlParams = new URLSearchParams(window.location.search);
+        const successMsg = urlParams.get('success');
+        const errorMsg = urlParams.get('error');
+        
+        if (successMsg) {
+            console.log("Success message found: " + decodeURIComponent(successMsg));
+            showToast(decodeURIComponent(successMsg), 'success');
+        }
+        
+        if (errorMsg) {
+            console.log("Error message found: " + decodeURIComponent(errorMsg));
+            showToast(decodeURIComponent(errorMsg), 'error');
+        }
+        
+        // Clean up URL parameters
+        if (successMsg || errorMsg) {
+            const cleanUrl = window.location.protocol + "//" + 
+                            window.location.host + 
+                            window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+        }
     });
+    
+    // Function to close the delete modal
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        // Reset form for safety
+        document.getElementById('deleteForm').reset();
+    }
+    
+    // Spinner functions
+    function showSpinner() {
+        document.getElementById('loadingSpinner').style.display = 'block';
+    }
+    
+    function hideSpinner() {
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+    
+    // Toast notification functions
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastIcon = document.getElementById('toast-icon');
+        const toastMessage = document.getElementById('toast-message');
+        
+        // Set message and icon
+        toastMessage.textContent = message;
+        
+        // Remove existing classes
+        toast.classList.remove('success', 'error');
+        toastIcon.classList.remove('fa-check-circle', 'fa-exclamation-circle');
+        
+        // Add appropriate classes
+        if (type === 'success') {
+            toast.classList.add('success');
+            toastIcon.classList.add('fas', 'fa-check-circle');
+        } else {
+            toast.classList.add('error');
+            toastIcon.classList.add('fas', 'fa-exclamation-circle');
+        }
+        
+        // Show toast
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        
+        // Auto hide after 5 seconds
+        setTimeout(closeToast, 5000);
+    }
+    
+    function closeToast() {
+        const toast = document.getElementById('toast');
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 300);
+    }
+    
+    // Function for view course details
+    function viewCourseDetails(courseId) {
+        showSpinner();
+        window.location.href = contextPath + "/ViewCourseDetailsServlet?courseId=" + courseId;
+    }
+    
+    // Function for edit course
+    function editCourse(courseId) {
+        showSpinner();
+        window.location.href = contextPath + "/EditCourseServlet?courseId=" + courseId;
+    }
     
     // Filter functions
     function toggleFilters() {
@@ -517,329 +540,28 @@
     }
     
     function applyFilters() {
-        const levelFilter = document.getElementById('filterLevel').value;
-        const statusFilter = document.getElementById('filterStatus').value;
-        const durationFilter = document.getElementById('filterDuration').value;
-        
-        const courseItems = document.querySelectorAll('.course-item');
-        
-        courseItems.forEach(item => {
-            let showItem = true;
-            
-            // Filter by level (which is actually status in the data)
-            if (levelFilter && item.dataset.status !== levelFilter) {
-                showItem = false;
-            }
-            
-            // Filter by active status
-            if (statusFilter) {
-                if (item.dataset.isOpen !== statusFilter) {
-                    showItem = false;
-                }
-            }
-            
-            // Filter by duration
-            if (durationFilter) {
-                const duration = parseInt(item.dataset.duration);
-                
-                if (durationFilter === '0-4' && (duration < 0 || duration > 4)) {
-                    showItem = false;
-                } else if (durationFilter === '5-8' && (duration < 5 || duration > 8)) {
-                    showItem = false;
-                } else if (durationFilter === '9-12' && (duration < 9 || duration > 12)) {
-                    showItem = false;
-                } else if (durationFilter === '13+' && duration < 13) {
-                    showItem = false;
-                }
-            }
-            
-            item.style.display = showItem ? 'block' : 'none';
-        });
+        // Implement your filter logic here
+        console.log("Apply filters clicked");
     }
     
     function resetFilters() {
-        document.getElementById('filterLevel').value = '';
-        document.getElementById('filterStatus').value = '';
-        document.getElementById('filterDuration').value = '';
-        
-        const courseItems = document.querySelectorAll('.course-item');
-        courseItems.forEach(item => {
-            item.style.display = 'block';
-        });
+        // Implement your reset logic here
+        console.log("Reset filters clicked");
     }
     
     function filterCourses() {
-        const searchText = document.getElementById('searchCourses').value.toLowerCase();
-        const courseItems = document.querySelectorAll('.course-item');
-        
-        courseItems.forEach(item => {
-            const title = item.dataset.title.toLowerCase();
-            
-            if (title.includes(searchText)) {
-                item.style.display = 'block';
-            } else {
-                item.style.display = 'none';
-            }
-        });
+        // Implement your course filtering logic here
+        const searchTerm = document.getElementById('searchCourses').value.toLowerCase();
+        console.log("Filtering courses for:", searchTerm);
     }
     
-    // Course operations
-    function toggleCourseStatus(courseId, isOpen) {
-        showSpinner();
-        
-        fetch(contextPath + '/ToggleCourseStatusServlet', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `courseId=${courseId}&isOpen=${isOpen}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Update UI
-                const courseItem = document.querySelector(`.course-item[data-course-id="${courseId}"]`);
-                const statusToggle = courseItem.querySelector('.status-toggle');
-                const statusLabel = courseItem.querySelector('.status-label');
-                
-                if (isOpen) {
-                    statusToggle.classList.remove('inactive');
-                    statusToggle.classList.add('active');
-                    statusLabel.textContent = 'Active';
-                } else {
-                    statusToggle.classList.remove('active');
-                    statusToggle.classList.add('inactive');
-                    statusLabel.textContent = 'Inactive';
-                }
-                
-                // Update data attribute
-                courseItem.dataset.isOpen = isOpen.toString();
-            } else {
-                alert('Failed to update course status: ' + data.message);
-                // Reset the toggle
-                const checkbox = document.querySelector(`.course-item[data-course-id="${courseId}"] input[type="checkbox"]`);
-                checkbox.checked = !isOpen;
-            }
-            hideSpinner();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while updating the course status');
-            // Reset the toggle
-            const checkbox = document.querySelector(`.course-item[data-course-id="${courseId}"] input[type="checkbox"]`);
-            checkbox.checked = !isOpen;
-            hideSpinner();
-        });
-    }
-    
-    function viewCourseDetails(courseId) {
-        showSpinner();
-        
-        fetch(contextPath + `/GetCourseDetailsServlet?courseId=${courseId}`)
-        .then(response => response.json())
-        .then(course => {
-            // Format course details for display
-            const enrollmentCount = course.enrollmentCount || 0;
-            const levelDisplay = course.status === 'ACTIVE' ? 'Beginner' : 
-                                 course.status === 'CANCELLED' ? 'Intermediate' : 
-                                 course.status === 'COMPLETED' ? 'Advanced' : 'Unknown';
-            
-            let detailsHtml = `
-                <div style="padding: 10px; background-color: #f8f9fa; border-left: 4px solid #4361ee; margin-bottom: 20px;">
-                    <h3 style="margin-top: 0; color: #4361ee;">${course.courseTitle}</h3>
-                    <span style="display: inline-block; padding: 5px 10px; background-color: ${course.isOpen ? '#e7f5ea' : '#ffebee'}; 
-                          border-radius: 20px; font-size: 14px; margin-bottom: 10px;">
-                          ${course.isOpen ? 'Active' : 'Inactive'}
-                    </span>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px;">
-                    <div>
-                        <h4>General Information</h4>
-                        <table style="width: 100%;">
-                            <tr>
-                                <td style="padding: 8px 0; color: #777;">Level:</td>
-                                <td style="padding: 8px 0; font-weight: 500;">${levelDisplay}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0; color: #777;">Duration:</td>
-                                <td style="padding: 8px 0; font-weight: 500;">${course.duration} weeks</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0; color: #777;">Credits:</td>
-                                <td style="padding: 8px 0; font-weight: 500;">${course.credits} Credits</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0; color: #777;">Cost:</td>
-                                <td style="padding: 8px 0; font-weight: 500;">$${course.cost.toFixed(2)}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div>
-                        <h4>Enrollment Information</h4>
-                        <table style="width: 100%;">
-                            <tr>
-                                <td style="padding: 8px 0; color: #777;">Current Enrollment:</td>
-                                <td style="padding: 8px 0; font-weight: 500;">${enrollmentCount} students</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0; color: #777;">Minimum Required:</td>
-                                <td style="padding: 8px 0; font-weight: 500;">${course.minStudents} students</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0; color: #777;">Maximum Capacity:</td>
-                                <td style="padding: 8px 0; font-weight: 500;">${course.maxStudents} students</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0; color: #777;">Availability:</td>
-                                <td style="padding: 8px 0; font-weight: 500;">
-                                    ${enrollmentCount < course.maxStudents ? 'Spots Available' : 'Class Full'}
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-                
-                <div>
-                    <h4>Course Description</h4>
-                    <p style="line-height: 1.6; color: #333; background-color: #f9f9f9; padding: 15px; border-radius: 8px;">
-                        ${course.description || 'No description provided.'}
-                    </p>
-                </div>
-            `;
-            
-            document.getElementById('courseDetailsContent').innerHTML = detailsHtml;
-            document.getElementById('viewCourseModal').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            hideSpinner();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Failed to load course details');
-            hideSpinner();
-        });
-    }
-    
+    // Function to close view modal
     function closeViewModal() {
-        document.getElementById('viewCourseModal').style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-    
-    function editCourse(courseId) {
-        window.location.href = contextPath + `/EditCourseServlet?courseId=${courseId}`;
-    }
-    
-    // Updated confirmDelete function
-    function confirmDelete(courseId, courseTitle) {
-        console.log("confirmDelete called with:", courseId, courseTitle);
-        
-        // Ensure we have valid data
-        courseId = parseInt(courseId);
-        
-        // Special handling for course title
-        let displayTitle = "Untitled Course";
-        if (courseTitle && typeof courseTitle === 'string' && courseTitle.trim() !== '') {
-            displayTitle = courseTitle.trim();
+        const viewModal = document.getElementById('viewCourseModal');
+        if (viewModal) {
+            viewModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
-        
-        console.log("Using display title:", displayTitle);
-        
-        // Set text content (not HTML) to avoid injection issues
-        const confirmText = document.getElementById('deleteConfirmText');
-        confirmText.textContent = `Are you sure you want to delete the course "${displayTitle}"?`;
-        
-        // Set up delete handler
-        document.getElementById('confirmDeleteBtn').onclick = function() {
-            deleteCourse(courseId);
-        };
-        
-        // Show modal
-        document.getElementById('deleteModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeDeleteModal() {
-        document.getElementById('deleteModal').style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-    
-    // Updated deleteCourse function
-    function deleteCourse(courseId) {
-        console.log("Deleting course with ID:", courseId);
-        showSpinner();
-        
-        fetch('<%= request.getContextPath() %>/DeleteCourseServlet', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `courseId=${courseId}`
-        })
-        .then(response => {
-            console.log("Response status:", response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log("Server response:", data);
-            hideSpinner();
-            closeDeleteModal(); // Close modal before showing any messages
-            
-            if (data.success) {
-                // Update UI for successful deletion
-                const courseItem = document.querySelector(`.course-item[data-course-id="${courseId}"]`);
-                if (courseItem) {
-                    courseItem.style.opacity = '0';
-                    setTimeout(() => {
-                        courseItem.remove();
-                        updateStats();
-                    }, 300);
-                } else {
-                    updateStats();
-                }
-                // Show success message
-                setTimeout(() => {
-                    alert("Course successfully deleted!");
-                }, 100);
-            } else {
-                setTimeout(() => {
-                    alert('Failed to delete course: ' + (data.message || "Unknown error"));
-                }, 100);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            hideSpinner();
-            closeDeleteModal();
-            setTimeout(() => {
-                alert('An error occurred while processing the request');
-            }, 100);
-        });
-    }
-    
-    function updateStats() {
-        const courseItems = document.querySelectorAll('.course-item');
-        const totalCourses = courseItems.length;
-        
-        let activeCourses = 0;
-        courseItems.forEach(item => {
-            if (item.querySelector('.status-toggle').classList.contains('active')) {
-                activeCourses++;
-            }
-        });
-        
-        const inactiveCourses = totalCourses - activeCourses;
-        
-        document.querySelector('.stat-card.total h2').textContent = totalCourses;
-        document.querySelector('.stat-card.active h2').textContent = activeCourses;
-        document.querySelector('.stat-card.inactive h2').textContent = inactiveCourses;
-    }
-    
-    function showSpinner() {
-        document.getElementById('loadingSpinner').style.display = 'block';
-    }
-    
-    function hideSpinner() {
-        document.getElementById('loadingSpinner').style.display = 'none';
     }
 </script>
 </body>

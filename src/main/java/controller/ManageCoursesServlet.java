@@ -64,13 +64,17 @@ public class ManageCoursesServlet extends HttpServlet {
                 enhancedCourse.put("open", course.isOpen());
                 enhancedCourse.put("status", course.getStatus().name());
                 
+                // Add the level attribute - this was missing
+                enhancedCourse.put("level", course.getLevel().name());
+                
                 // Get instructor name
                 User instructor = UserDAO.getUserById(course.getInstructorId());
                 enhancedCourse.put("instructorName", instructor != null ? instructor.getFullName() : "Unknown");
                 
-                // Get enrollment count
-                int enrollmentCount = CourseDAO.getCurrentEnrollmentCount(course.getCourseId());
+                // Get enrollment count - add both attributes for compatibility
+                int enrollmentCount = course.getEnrollmentCount();
                 enhancedCourse.put("currentEnrollment", enrollmentCount);
+                enhancedCourse.put("enrollmentCount", enrollmentCount);
                 
                 // Determine last updated date
                 Date lastUpdated = course.getUpdatedAt() != null ? course.getUpdatedAt() : course.getCreatedAt();

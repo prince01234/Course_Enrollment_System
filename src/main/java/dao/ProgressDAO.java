@@ -24,7 +24,7 @@ public class ProgressDAO {
             if (affectedRows > 0) {
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     if (rs.next()) {
-                        return rs.getInt(1);
+                        return rs.getInt(1); // Return the generated progress_id
                     }
                 }
             }

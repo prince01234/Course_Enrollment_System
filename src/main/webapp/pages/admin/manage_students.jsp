@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,12 +8,13 @@
     <title>EduEnroll - Manage Students</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin/manage_students.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/admin_sidebar.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/ComposeEmail.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <!-- Sidebar -->
-		<%@ include file="/pages/components/admin_sidebar.jsp" %>
+        <%@ include file="/pages/components/admin_sidebar.jsp" %>
 
         <!-- Main Content -->
         <div class="main-content">
@@ -35,7 +37,7 @@
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-info">
-                        <h2>2,547</h2>
+                        <h2>${totalStudents}</h2>
                         <p>Total Students</p>
                     </div>
                 </div>
@@ -44,7 +46,7 @@
                         <i class="fas fa-user-check"></i>
                     </div>
                     <div class="stat-info">
-                        <h2>1,890</h2>
+                        <h2>${activeStudents}</h2>
                         <p>Active Students</p>
                     </div>
                 </div>
@@ -53,7 +55,7 @@
                         <i class="fas fa-user-clock"></i>
                     </div>
                     <div class="stat-info">
-                        <h2>657</h2>
+                        <h2>${inactiveStudents}</h2>
                         <p>Inactive Students</p>
                     </div>
                 </div>
@@ -63,13 +65,13 @@
             <div class="search-filter">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search students...">
+                    <input type="text" id="searchInput" placeholder="Search students...">
                 </div>
                 <div class="filter-dropdown">
-                    <select>
-                        <option>All Status</option>
-                        <option>Active</option>
-                        <option>Inactive</option>
+                    <select id="statusFilter">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
                     </select>
                     <i class="fas fa-chevron-down"></i>
                 </div>
@@ -86,105 +88,77 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td class="student-info">
-                                <img src="https://via.placeholder.com/40" alt="Alex Morgan">
-                                <div class="student-details">
-                                    <p class="student-name">Alex Morgan</p>
-                                    <p class="student-email">alex.morgan@example.com</p>
-                                </div>
-                            </td>
-                            <td class="courses-info">
-                                <p>Active: 2</p>
-                                <p>Completed: 3</p>
-                            </td>
-                            <td>
-                                <span class="status active">Active</span>
-                            </td>
-                            <td class="actions">
-                                <button class="action-btn email"><i class="fas fa-envelope"></i></button>
-                                <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="student-info">
-                                <img src="https://via.placeholder.com/40" alt="Prince Shrestha">
-                                <div class="student-details">
-                                    <p class="student-name">Prince Shrestha</p>
-                                    <p class="student-email">prince.shrestha@example.com</p>
-                                </div>
-                            </td>
-                            <td class="courses-info">
-                                <p>Active: 2</p>
-                                <p>Completed: 3</p>
-                            </td>
-                            <td>
-                                <span class="status active">Active</span>
-                            </td>
-                            <td class="actions">
-                                <button class="action-btn email"><i class="fas fa-envelope"></i></button>
-                                <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="student-info">
-                                <img src="https://via.placeholder.com/40" alt="Esha Shrestha">
-                                <div class="student-details">
-                                    <p class="student-name">Esha Shrestha</p>
-                                    <p class="student-email">esha.shrestha@example.com</p>
-                                </div>
-                            </td>
-                            <td class="courses-info">
-                                <p>Active: 0</p>
-                                <p>Completed: 6</p>
-                            </td>
-                            <td>
-                                <span class="status inactive">Inactive</span>
-                            </td>
-                            <td class="actions">
-                                <button class="action-btn email"><i class="fas fa-envelope"></i></button>
-                                <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="student-info">
-                                <img src="https://via.placeholder.com/40" alt="Esha Shrestha">
-                                <div class="student-details">
-                                    <p class="student-name">Esha Shrestha</p>
-                                    <p class="student-email">esha.shrestha@example.com</p>
-                                </div>
-                            </td>
-                            <td class="courses-info">
-                                <p>Active: 0</p>
-                                <p>Completed: 6</p>
-                            </td>
-                            <td>
-                                <span class="status inactive">Inactive</span>
-                            </td>
-                            <td class="actions">
-                                <button class="action-btn email"><i class="fas fa-envelope"></i></button>
-                                <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                            </td>
-                        </tr>
+                    <tbody id="studentTableBody">
+                        <c:forEach var="student" items="${students}">
+                            <tr data-status="${studentDetails[student.userId].status.toLowerCase()}" 
+                                data-name="${student.firstName} ${student.lastName}" 
+                                data-email="${student.email}">
+                                <td class="student-info">
+                                    <img src="https://via.placeholder.com/40" alt="${student.firstName} ${student.lastName}">
+                                    <div class="student-details">
+                                        <p class="student-name">${student.firstName} ${student.lastName}</p>
+                                        <p class="student-email">${student.email}</p>
+                                    </div>
+                                </td>
+                                <td class="courses-info">
+                                    <p>Active: ${studentDetails[student.userId].activeCourses}</p>
+                                    <p>Completed: ${studentDetails[student.userId].completedCourses}</p>
+                                </td>
+                                <td>
+                                    <span class="status ${studentDetails[student.userId].status.toLowerCase()}">
+                                        ${studentDetails[student.userId].status}
+                                    </span>
+                                </td>
+                                <td class="actions">
+                                    <button class="action-btn email" onclick="composeEmail('${student.email}', '${student.firstName} ${student.lastName}')">
+    <i class="fas fa-envelope"></i>
+</button>
+                                    <button class="action-btn edit" onclick="editStudent(${student.userId})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </c:forEach>
                     </tbody>
                 </table>
             </div>
-
-            <!-- Pagination -->
-            <div class="pagination">
-                <div class="pagination-info">
-                    Showing 1 to 10 of 100 entries
-                </div>
-                <div class="pagination-controls">
-                    <button class="pagination-btn">Previous</button>
-                    <button class="pagination-btn active">1</button>
-                    <button class="pagination-btn">2</button>
-                    <button class="pagination-btn">3</button>
-                    <button class="pagination-btn">Next</button>
-                </div>
-            </div>
         </div>
     </div>
+
+    <!-- Include Email Modal Component -->
+    <%@ include file="/pages/components/ComposeEmail.jsp" %>
+    
+
+    <script>
+        // Combined search and filter functionality
+        function filterStudents() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+            const filterValue = document.getElementById('statusFilter').value;
+            const rows = document.querySelectorAll('#studentTableBody tr');
+            
+            rows.forEach(row => {
+                const status = row.dataset.status;
+                const studentName = row.dataset.name.toLowerCase();
+                const studentEmail = row.dataset.email.toLowerCase();
+                
+                // Show row if it matches both the search and filter criteria
+                const matchesSearch = studentName.includes(searchValue) || studentEmail.includes(searchValue);
+                const matchesFilter = filterValue === 'all' || status === filterValue;
+                
+                row.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+            });
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('keyup', filterStudents);
+        document.getElementById('statusFilter').addEventListener('change', filterStudents);
+
+        // Edit Student function - placeholder for now
+        function editStudent(studentId) {
+            console.log("Edit student: " + studentId);
+            // You can uncomment the line below when ready to implement
+            // window.location.href = '${pageContext.request.contextPath}/EditStudentServlet?id=' + studentId;
+        }
+    </script>
 </body>
 </html>

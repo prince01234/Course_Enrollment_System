@@ -412,4 +412,59 @@ public class EnrollmentDAO {
         }
         return 0;
     }
+    
+ // Get active enrollment count by student
+    public static int getActiveEnrollmentCountByStudent(int studentId) {
+        String sql = "SELECT COUNT(*) FROM Enrollments e " +
+                     "JOIN Progress p ON e.enrollment_id = p.enrollment_id " +
+                     "WHERE e.student_id = ? AND p.progress_status = 'In_Progress'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, studentId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting active enrollment count for student: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+ // Get completed enrollment count by student
+    public static int getCompletedEnrollmentCountByStudent(int studentId) {
+        String sql = "SELECT COUNT(*) FROM Enrollments e " +
+                     "JOIN Progress p ON e.enrollment_id = p.enrollment_id " +
+                     "WHERE e.student_id = ? AND p.progress_status = 'Completed'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, studentId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting completed enrollment count for student: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+ // Get enrollment count by course
+    public static int getEnrollmentCountByCourse(int courseId) {
+        String sql = "SELECT COUNT(*) FROM Enrollments WHERE course_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, courseId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting enrollment count for course: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

@@ -2,8 +2,7 @@ package enums;
 
 public enum CourseEnum {
     ACTIVE("Active"),
-    CANCELLED("Cancelled"),
-    COMPLETED("Completed");
+    INACTIVE("Inactive"),;
     
     private final String displayName;
     

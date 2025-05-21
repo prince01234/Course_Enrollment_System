@@ -6,43 +6,45 @@ import java.util.List;
 import model.Course;
 import util.DBConnection;
 import enums.CourseEnum;
+import enums.LevelEnum;
 
 public class CourseDAO {
     
     // Create new course
-    public static int createCourse(Course course) {
-        String sql = "INSERT INTO Courses (course_title, description, duration, min_students, " +
-                    "max_students, is_open, instructor_id, credits, cost, status, created_at) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+	public static int createCourse(Course course) {
+	    String sql = "INSERT INTO Courses (course_title, description, duration, min_students, " +
+	                "max_students, is_open, instructor_id, credits, cost, status, level, created_at) " +
+	                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+	    try (Connection conn = DBConnection.getConnection();
+	         PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, course.getCourseTitle());
-            ps.setString(2, course.getDescription());
-            ps.setInt(3, course.getDuration());
-            ps.setInt(4, course.getMinStudents());
-            ps.setInt(5, course.getMaxStudents());
-            ps.setBoolean(6, course.isOpen());
-            ps.setInt(7, course.getInstructorId());
-            ps.setInt(8, course.getCredits());
-            ps.setDouble(9, course.getCost());
-            ps.setString(10, course.getStatus().name());
+	        ps.setString(1, course.getCourseTitle());
+	        ps.setString(2, course.getDescription());
+	        ps.setInt(3, course.getDuration());
+	        ps.setInt(4, course.getMinStudents());
+	        ps.setInt(5, course.getMaxStudents());
+	        ps.setBoolean(6, course.isOpen());
+	        ps.setInt(7, course.getInstructorId());
+	        ps.setInt(8, course.getCredits());
+	        ps.setDouble(9, course.getCost());
+	        ps.setString(10, course.getStatus().name());
+	        ps.setString(11, course.getLevel().name());
 
-            int affectedRows = ps.executeUpdate();
-            if (affectedRows > 0) {
-                try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        return rs.getInt(1);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error creating course: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return -1;
-    }
+	        int affectedRows = ps.executeUpdate();
+	        if (affectedRows > 0) {
+	            try (ResultSet rs = ps.getGeneratedKeys()) {
+	                if (rs.next()) {
+	                    return rs.getInt(1);
+	                }
+	            }
+	        }
+	    } catch (SQLException e) {
+	        System.err.println("Error creating course: " + e.getMessage());
+	        e.printStackTrace();
+	    }
+	    return -1;
+	}
 
     // Get course by ID with enrollment count
     public static Course getCourseById(int courseId) {
@@ -122,7 +124,7 @@ public class CourseDAO {
         return courses;
     }
 
-    // Search available courses - NEW METHOD
+    // Search available courses
     public static List<Course> searchAvailableCourses(String searchQuery) {
         List<Course> courses = new ArrayList<>();
         String sql = "SELECT c.*, COUNT(e.enrollment_id) as enrollment_count " +
@@ -152,11 +154,11 @@ public class CourseDAO {
         return courses;
     }
 
-    // Update course
+ // Update course
     public static boolean updateCourse(Course course) {
         String sql = "UPDATE Courses SET course_title=?, description=?, duration=?, " +
                     "min_students=?, max_students=?, is_open=?, instructor_id=?, " +
-                    "credits=?, cost=?, status=?, updated_at=CURRENT_TIMESTAMP " +
+                    "credits=?, cost=?, status=?, level=?, updated_at=CURRENT_TIMESTAMP " +
                     "WHERE course_id=?";
 
         try (Connection conn = DBConnection.getConnection();
@@ -172,7 +174,8 @@ public class CourseDAO {
             ps.setInt(8, course.getCredits());
             ps.setDouble(9, course.getCost());
             ps.setString(10, course.getStatus().name());
-            ps.setInt(11, course.getCourseId());
+            ps.setString(11, course.getLevel().name());
+            ps.setInt(12, course.getCourseId());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -182,11 +185,27 @@ public class CourseDAO {
         return false;
     }
 
+    // Toggle course active status (NEW METHOD)
+    public static boolean updateCourseStatus(int courseId, boolean isOpen) throws SQLException {
+        String sql = "UPDATE Courses SET is_open=?, updated_at=CURRENT_TIMESTAMP WHERE course_id=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setBoolean(1, isOpen);
+            ps.setInt(2, courseId);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating course status: " + e.getMessage());
+            e.printStackTrace();
+            throw e; // Rethrow to handle in servlet
+        }
+    }
+
     // Delete course
-    public static boolean deleteCourse(int courseId) {
-        System.out.println("CourseDAO: Attempting to delete course ID: " + courseId);
-        
-        // Use try-with-resources for simpler resource management
+    public static boolean deleteCourse(int courseId) throws SQLException {
         String sql = "DELETE FROM Courses WHERE course_id = ?";
         
         try (Connection connection = DBConnection.getConnection();
@@ -195,15 +214,75 @@ public class CourseDAO {
             statement.setInt(1, courseId);
             int rowsAffected = statement.executeUpdate();
             
-            System.out.println("CourseDAO: Delete operation affected " + rowsAffected + " rows");
             return rowsAffected > 0;
         } catch (SQLException e) {
             System.err.println("CourseDAO: Error deleting course: " + e.getMessage());
-            e.printStackTrace();
-            return false;
+            throw e; 
         }
     }
 
+
+ // Toggle course between ACTIVE and INACTIVE status
+ public static boolean toggleCourseActiveStatus(int courseId) throws SQLException {
+     Connection conn = null;
+     
+     try {
+         conn = DBConnection.getConnection();
+         
+         // First get the current status
+         String statusSql = "SELECT status FROM Courses WHERE course_id = ?";
+         try (PreparedStatement statusStmt = conn.prepareStatement(statusSql)) {
+             statusStmt.setInt(1, courseId);
+             ResultSet statusRs = statusStmt.executeQuery();
+             
+             if (!statusRs.next()) {
+                 return false; // Course not found
+             }
+             
+             String currentStatus = statusRs.getString("status");
+             
+             // Only check enrollments if trying to deactivate
+             if (currentStatus.equals(CourseEnum.ACTIVE.name())) {
+                 String countSql = "SELECT COUNT(*) FROM enrollments WHERE course_id = ?";
+                 try (PreparedStatement countStmt = conn.prepareStatement(countSql)) {
+                     countStmt.setInt(1, courseId);
+                     ResultSet countRs = countStmt.executeQuery();
+                     
+                     if (countRs.next() && countRs.getInt(1) > 0) {
+                         throw new SQLException("Cannot deactivate course with existing enrollments");
+                     }
+                 }
+             }
+             
+             // Now perform the toggle
+             String updateSql = "UPDATE Courses SET status = CASE " +
+                              "WHEN status = '" + CourseEnum.ACTIVE.name() + "' THEN '" + CourseEnum.INACTIVE.name() + "' " +
+                              "WHEN status = '" + CourseEnum.INACTIVE.name() + "' THEN '" + CourseEnum.ACTIVE.name() + "' " +
+                              "END, " +
+                              "updated_at = CURRENT_TIMESTAMP " +
+                              "WHERE course_id = ?";
+             
+             try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                 updateStmt.setInt(1, courseId);
+                 int rowsAffected = updateStmt.executeUpdate();
+                 return rowsAffected > 0;
+             }
+         }
+     } catch (SQLException e) {
+         System.err.println("Error toggling course active status: " + e.getMessage());
+         e.printStackTrace();
+         throw e; // Rethrow to handle in servlet
+     } finally {
+         if (conn != null) {
+             try {
+                 conn.close();
+             } catch (SQLException e) {
+                 // Ignore close errors
+             }
+         }
+     }
+ }
+ 
     // Helper method to map ResultSet to Course object
     private static Course mapResultSetToCourse(ResultSet rs) throws SQLException {
         Course course = new Course();
@@ -218,6 +297,7 @@ public class CourseDAO {
         course.setCredits(rs.getInt("credits"));
         course.setCost(rs.getDouble("cost"));
         course.setStatus(CourseEnum.valueOf(rs.getString("status")));
+        course.setLevel(LevelEnum.valueOf(rs.getString("level")));
         course.setCreatedAt(rs.getTimestamp("created_at"));
         course.setUpdatedAt(rs.getTimestamp("updated_at"));
         return course;
@@ -241,38 +321,45 @@ public class CourseDAO {
         return 0;
     }
 
-    public static int getCurrentEnrollmentCount(int courseId) {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-        
-        try {
-            connection = DBConnection.getConnection();
-            String sql = "SELECT COUNT(*) FROM enrollments WHERE course_id = ? AND status = 'ACTIVE'";
-            statement = connection.prepareStatement(sql);
-            statement.setInt(1, courseId);
-            resultSet = statement.executeQuery();
+    // Get number of recent courses (added in last 7 days) (NEW METHOD)
+    public static int getRecentCoursesCount() {
+        String sql = "SELECT COUNT(*) FROM Courses WHERE created_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 7 DAY)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            if (resultSet.next()) {
-                return resultSet.getInt(1);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
             }
-            return 0;
+        } catch (SQLException e) {
+            System.err.println("Error getting recent course count: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    // Get current enrollment count for a course
+    public static int getCurrentEnrollmentCount(int courseId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM enrollments WHERE course_id = ? AND status = 'ACTIVE'";
+        
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            
+            statement.setInt(1, courseId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt(1);
+                }
+                return 0;
+            }
         } catch (SQLException e) {
             System.err.println("Error getting enrollment count: " + e.getMessage());
             e.printStackTrace();
-            return 0;
-        } finally {
-            try {
-                if (resultSet != null) resultSet.close();
-                if (statement != null) statement.close();
-                if (connection != null) connection.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing resources: " + e.getMessage());
-            }
+            throw e; // Rethrow to handle in servlet
         }
     }
     
-    // Get courses by instructor ID - NEW METHOD
+    // Get courses by instructor ID
     public static List<Course> getCoursesByInstructorId(int instructorId) {
         List<Course> courses = new ArrayList<>();
         String sql = "SELECT c.*, COUNT(e.enrollment_id) as enrollment_count " +
@@ -296,5 +383,43 @@ public class CourseDAO {
             e.printStackTrace();
         }
         return courses;
+    }
+    
+    // Get count of active and inactive courses (NEW METHOD)
+    public static int getActiveOpenCoursesCount() {
+        String sql = "SELECT COUNT(*) FROM Courses WHERE is_open = true";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+             
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting active open course count: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    public static int getInactiveCoursesCount() {
+        String sql = "SELECT COUNT(*) FROM Courses WHERE is_open = false";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+             
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting inactive course count: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    // Add a course (alias for createCourse for consistent naming with other functions)
+    public static int addCourse(Course course) {
+        return createCourse(course);
     }
 }

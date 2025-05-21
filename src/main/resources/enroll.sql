@@ -50,8 +50,9 @@ CREATE TABLE Progress (
     progress_id INT AUTO_INCREMENT PRIMARY KEY,
     enrollment_id INT NOT NULL,
     progress_percent DOUBLE CHECK (progress_percent >= 0 AND progress_percent <= 100),
-    progress_status ENUM('Not_Started', 'In_Progress', 'Completed') DEFAULT 'In_Progress',
-    FOREIGN KEY (enrollment_id) REFERENCES Enrollments(enrollment_id)
+    progress_status ENUM('In_Progress', 'Completed') DEFAULT 'In_Progress',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (enrollment_id) REFERENCES Enrollments(enrollment_id) ON DELETE CASCADE
 );
 
 --For Grades

@@ -5,10 +5,15 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import model.Course;
 import dao.CourseDAO;
 import enums.CourseEnum;
-import java.io.IOException;
+import enums.LevelEnum;
 
 @WebServlet(name = "AddCourseServlet", value = "/AddCourseServlet")
 public class AddCourseServlet extends HttpServlet {
@@ -19,7 +24,6 @@ public class AddCourseServlet extends HttpServlet {
             throws ServletException, IOException {
         response.sendRedirect(request.getContextPath() + "/ManageCoursesServlet");
     }
-    
     
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
@@ -39,29 +43,72 @@ public class AddCourseServlet extends HttpServlet {
             course.setDuration(Integer.parseInt(request.getParameter("duration")));
             course.setMinStudents(Integer.parseInt(request.getParameter("minStudents")));
             course.setMaxStudents(Integer.parseInt(request.getParameter("maxStudents")));
-            course.setOpen(true); // New courses are open by default
-            course.setInstructorId(Integer.parseInt(request.getParameter("instructorId")));
             course.setCredits(Integer.parseInt(request.getParameter("credits")));
             course.setCost(Double.parseDouble(request.getParameter("cost")));
-            course.setStatus(CourseEnum.ACTIVE); // New courses are active by default
+            course.setInstructorId(Integer.parseInt(request.getParameter("instructorId")));
+            
+            // Get isOpen from checkbox
+            course.setOpen(request.getParameter("isOpen") != null);
+            
+            // Set course status to ACTIVE by default
+            course.setStatus(CourseEnum.ACTIVE);
+            
+            // Map course level from dropdown
+            String levelParam = request.getParameter("courseLevel");
+            if (levelParam != null && !levelParam.isEmpty()) {
+                try {
+                    course.setLevel(LevelEnum.valueOf(levelParam));
+                } catch (IllegalArgumentException e) {
+                    course.setLevel(LevelEnum.BEGINNER);
+                    System.err.println("Invalid level: " + levelParam + ". Using BEGINNER instead.");
+                }
+            } else {
+                // Handle form submission with missing level
+                String statusValue = request.getParameter("status");
+                if (statusValue != null) {
+                    if (statusValue.equals("ACTIVE")) {
+                        course.setLevel(LevelEnum.BEGINNER);
+                    } else if (statusValue.equals("CANCELLED")) {
+                        course.setLevel(LevelEnum.INTERMEDIATE);
+                    } else if (statusValue.equals("COMPLETED")) {
+                        course.setLevel(LevelEnum.ADVANCED);
+                    } else {
+                        course.setLevel(LevelEnum.BEGINNER);
+                    }
+                } else {
+                    course.setLevel(LevelEnum.BEGINNER);
+                }
+            }
 
             // Add course
             int courseId = CourseDAO.createCourse(course);
             
             if (courseId > 0) {
-                // Success - redirect to manage courses
-                response.sendRedirect(request.getContextPath() + "/ManageCoursesServlet?success=true");
-            } else {
-                // Error - redirect with error message
+                // Success - redirect with detailed success message
+                String successMsg = "Course \"" + course.getCourseTitle() + "\" has been successfully created";
                 response.sendRedirect(request.getContextPath() + 
-                    "/ManageCoursesServlet?error=Failed to create course");
+                    "/ManageCoursesServlet?success=" + URLEncoder.encode(successMsg, StandardCharsets.UTF_8));
+            } else if (courseId == -2) {
+                // Specific error code for duplicate course title (if implemented in your DAO)
+                response.sendRedirect(request.getContextPath() + 
+                    "/ManageCoursesServlet?error=" + URLEncoder.encode("A course with this title already exists", StandardCharsets.UTF_8));
+            } else {
+                // General error - redirect with error message
+                response.sendRedirect(request.getContextPath() + 
+                    "/ManageCoursesServlet?error=" + URLEncoder.encode("Failed to create course. Please try again.", StandardCharsets.UTF_8));
             }
             
+        } catch (NumberFormatException e) {
+            System.err.println("Error parsing numeric values: " + e.getMessage());
+            String errorMsg = "Invalid numeric values: " + e.getMessage();
+            response.sendRedirect(request.getContextPath() + 
+                "/ManageCoursesServlet?error=" + URLEncoder.encode(errorMsg, StandardCharsets.UTF_8));
         } catch (Exception e) {
             System.err.println("Error in AddCourseServlet: " + e.getMessage());
             e.printStackTrace();
+            String errorMsg = "Error processing request: " + e.getMessage();
             response.sendRedirect(request.getContextPath() + 
-                "/ManageCoursesServlet?error=Error processing request");
+                "/ManageCoursesServlet?error=" + URLEncoder.encode(errorMsg, StandardCharsets.UTF_8));
         }
     }
 }

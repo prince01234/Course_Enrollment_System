@@ -344,6 +344,23 @@ public class UserDAO {
         return users;
     }
 
+ // Get total users by role
+    public static int getTotalUsersByRole(String role) {
+        String sql = "SELECT COUNT(*) FROM users WHERE role = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, role);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting total users by role: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
     // Update user details
     public static boolean updateUser(User user) {
         String sql = "UPDATE users SET first_name = ?, last_name = ?, email = ?, " +
@@ -386,6 +403,26 @@ public class UserDAO {
             e.printStackTrace();
         }
         return users;
+    }
+    
+ // Get active students count
+    public static int getActiveStudentsCount() {
+        String sql = "SELECT COUNT(DISTINCT u.user_id) " +
+                     "FROM users u " +
+                     "JOIN Enrollments e ON u.user_id = e.student_id " +
+                     "JOIN Progress p ON e.enrollment_id = p.enrollment_id " +
+                     "WHERE u.role = 'USER' AND p.progress_status = 'In_Progress'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting active students count: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
     }
     
     

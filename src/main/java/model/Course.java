@@ -1,6 +1,7 @@
 package model;
 
 import enums.CourseEnum;
+import enums.LevelEnum;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,7 @@ public class Course {
     private double cost;
     private int enrollmentCount;
     private CourseEnum status = CourseEnum.ACTIVE;
+    private LevelEnum level = LevelEnum.BEGINNER; 
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
@@ -28,7 +30,7 @@ public class Course {
     // Full constructor with ID - for existing courses
     public Course(int courseId, String courseTitle, String description, int duration, int minStudents,
             int maxStudents, boolean isOpen, int instructorId,
-            int credits, double cost, CourseEnum status) {
+            int credits, double cost, CourseEnum status, LevelEnum level) {
         this.courseId = courseId;
         this.courseTitle = courseTitle;
         this.description = description;
@@ -40,12 +42,13 @@ public class Course {
         this.credits = credits;
         this.cost = cost;
         this.status = status;
+        this.level = level;
     }
 
     // Constructor without ID - for new courses
     public Course(String courseTitle, String description, int duration, int minStudents,
             int maxStudents, boolean isOpen, int instructorId,
-            int credits, double cost, CourseEnum status) {
+            int credits, double cost, CourseEnum status, LevelEnum level) {
         this.courseTitle = courseTitle;
         this.description = description;
         this.duration = duration;
@@ -56,6 +59,7 @@ public class Course {
         this.credits = credits;
         this.cost = cost;
         this.status = status;
+        this.level = level;
     }
 
     // Getters and setters
@@ -147,19 +151,30 @@ public class Course {
     public void setStatus(CourseEnum status) {
         this.status = status;
     }
+    
+    // Level methods
+    public LevelEnum getLevel() {
+        return level;
+    }
+
+    public void setLevel(LevelEnum level) {
+        this.level = level;
+    }
+    
+    // Get level display name
+    public String getLevelName() {
+        return level.name();
+    }
 
     // Helper methods for status checks
     public boolean isActive() {
         return status == CourseEnum.ACTIVE;
     }
 
-    public boolean isCancelled() {
-        return status == CourseEnum.CANCELLED;
+    public boolean isInactive() {
+        return status == CourseEnum.INACTIVE;
     }
 
-    public boolean isCompleted() {
-        return status == CourseEnum.COMPLETED;
-    }
 
     public String getStatusName() {
         return status.getDisplayName();
@@ -241,6 +256,7 @@ public class Course {
                 ", maxStudents=" + maxStudents +
                 ", credits=" + credits +
                 ", status=" + getStatusName() +
+                ", level=" + getLevelName() +
                 "}";
     }
 }

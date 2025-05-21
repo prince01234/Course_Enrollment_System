@@ -6,12 +6,13 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import dao.CourseDAO;
+import model.Course;
 import model.User;
-import com.google.gson.JsonObject;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Enumeration;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 
 @WebServlet(name = "DeleteCourseServlet", value = "/DeleteCourseServlet")
 public class DeleteCourseServlet extends HttpServlet {
@@ -27,85 +28,73 @@ public class DeleteCourseServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
-        response.setContentType("application/json");
-        PrintWriter out = response.getWriter();
-        JsonObject jsonResponse = new JsonObject();
-        
         try {
-            // Debug information - log all received parameters
-            System.out.println("DeleteCourseServlet received parameters:");
-            Enumeration<String> paramNames = request.getParameterNames();
-            while (paramNames.hasMoreElements()) {
-                String name = paramNames.nextElement();
-                System.out.println(name + " = " + request.getParameter(name));
-            }
-            
             // Session validation
             User user = (User) request.getSession().getAttribute("user");
             if (user == null || !user.getRole().toString().equals("ADMIN")) {
-                jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("message", "Unauthorized access");
-                out.print(jsonResponse);
+                String errorMsg = URLEncoder.encode("Unauthorized access. Only administrators can delete courses.", StandardCharsets.UTF_8);
+                response.sendRedirect(request.getContextPath() + "/ManageCoursesServlet?error=" + errorMsg);
                 return;
             }
 
             // Get and validate course ID
             String courseIdParam = request.getParameter("courseId");
             if (courseIdParam == null || courseIdParam.trim().isEmpty()) {
-                jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("message", "Course ID is missing or empty");
-                out.print(jsonResponse);
+                String errorMsg = URLEncoder.encode("Course ID is missing or empty. Please provide a valid course ID.", StandardCharsets.UTF_8);
+                response.sendRedirect(request.getContextPath() + "/ManageCoursesServlet?error=" + errorMsg);
                 return;
             }
             
             int courseId;
             try {
                 courseId = Integer.parseInt(courseIdParam.trim());
-                System.out.println("Parsed courseId: " + courseId);
             } catch (NumberFormatException e) {
-                jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("message", "Invalid course ID format: '" + courseIdParam + "'");
-                out.print(jsonResponse);
+                String errorMsg = URLEncoder.encode("Invalid course ID format: '" + courseIdParam + "'. Please provide a numeric ID.", StandardCharsets.UTF_8);
+                response.sendRedirect(request.getContextPath() + "/ManageCoursesServlet?error=" + errorMsg);
                 return;
             }
             
+            // Get course details for more informative messages
+            Course course = CourseDAO.getCourseById(courseId);
+            if (course == null) {
+                String errorMsg = URLEncoder.encode("Course not found with ID: " + courseId + ". It may have been already deleted.", StandardCharsets.UTF_8);
+                response.sendRedirect(request.getContextPath() + "/ManageCoursesServlet?error=" + errorMsg);
+                return;
+            }
+            
+            String courseTitle = course.getCourseTitle();
+            
             // Check if course has enrollments
             int enrollmentCount = CourseDAO.getCurrentEnrollmentCount(courseId);
-            System.out.println("Course ID " + courseId + " has " + enrollmentCount + " active enrollments");
-            
             if (enrollmentCount > 0) {
-                jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("message", "Cannot delete course with active enrollments. Please cancel the enrollments first.");
-                out.print(jsonResponse);
+                String errorMsg = URLEncoder.encode("Cannot delete course \"" + courseTitle + 
+                    "\" because it has " + enrollmentCount + " active enrollment(s). " + 
+                    "Please cancel all enrollments before deleting this course.", StandardCharsets.UTF_8);
+                response.sendRedirect(request.getContextPath() + "/ManageCoursesServlet?error=" + errorMsg);
                 return;
             }
             
             // Delete course
-            System.out.println("Attempting to delete course ID: " + courseId);
             boolean deleted = CourseDAO.deleteCourse(courseId);
             
             if (deleted) {
-                System.out.println("Successfully deleted course ID: " + courseId);
-                jsonResponse.addProperty("success", true);
+                String successMsg = URLEncoder.encode("Course \"" + courseTitle + "\" has been successfully deleted.", StandardCharsets.UTF_8);
+                response.sendRedirect(request.getContextPath() + "/ManageCoursesServlet?success=" + successMsg);
             } else {
-                System.out.println("Failed to delete course ID: " + courseId);
-                jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("message", "Failed to delete course");
+                String errorMsg = URLEncoder.encode("Failed to delete course \"" + courseTitle + "\". Please try again or contact system administrator.", StandardCharsets.UTF_8);
+                response.sendRedirect(request.getContextPath() + "/ManageCoursesServlet?error=" + errorMsg);
             }
             
-        } catch (NumberFormatException e) {
-            System.err.println("Error parsing courseId: " + e.getMessage());
-            jsonResponse.addProperty("success", false);
-            jsonResponse.addProperty("message", "Invalid course ID format: " + e.getMessage());
+        } catch (SQLException e) {
+            String errorMsg = URLEncoder.encode("Database error while deleting course. There are still students here. Please try again later.", StandardCharsets.UTF_8);
+            response.sendRedirect(request.getContextPath() + "/ManageCoursesServlet?error=" + errorMsg);
+            System.err.println("SQL error in DeleteCourseServlet: " + e.getMessage());
+            e.printStackTrace();
         } catch (Exception e) {
+            String errorMsg = URLEncoder.encode("Unexpected error while deleting course: " + e.getMessage() + ". Please try again later.", StandardCharsets.UTF_8);
+            response.sendRedirect(request.getContextPath() + "/ManageCoursesServlet?error=" + errorMsg);
             System.err.println("Error in DeleteCourseServlet: " + e.getMessage());
             e.printStackTrace();
-            jsonResponse.addProperty("success", false);
-            jsonResponse.addProperty("message", e.getMessage());
         }
-        
-        // Send the final response
-        out.print(jsonResponse);
-        System.out.println("DeleteCourseServlet response: " + jsonResponse.toString());
     }
 }

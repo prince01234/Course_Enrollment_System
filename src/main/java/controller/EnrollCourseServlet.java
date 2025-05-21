@@ -7,14 +7,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.sql.Timestamp;
 
 import model.User;
 import model.Course;
 import model.Enrollment;
+import model.Progress;
 import dao.CourseDAO;
 import dao.EnrollmentDAO;
+import dao.ProgressDAO;
 import enums.EnrollmentEnum;
+import enums.ProgressEnum;
 
 @WebServlet(name = "EnrollCourseServlet", urlPatterns = {"/EnrollCourseServlet"})
 public class EnrollCourseServlet extends HttpServlet {
@@ -64,13 +66,22 @@ public class EnrollCourseServlet extends HttpServlet {
             enrollment.setStudentId(student.getUserId());
             enrollment.setCourseId(courseId);
             enrollment.setStatus(EnrollmentEnum.PENDING);
-            // If your constructor requires LocalDateTime, use:
-            // enrollment.setEnrollmentDate(new Timestamp(System.currentTimeMillis()).toLocalDateTime());
             
             // Save enrollment
             int enrollmentId = EnrollmentDAO.createEnrollment(enrollment);
             if (enrollmentId > 0) {
-                session.setAttribute("successMessage", "Enrollment request submitted successfully! Please wait for approval.");
+                // Automatically create progress entry with 0% progress
+                Progress progress = new Progress();
+                progress.setEnrollmentId(enrollmentId);
+                progress.setProgressPercent(0);
+                progress.setProgressStatus(ProgressEnum.In_Progress);
+
+                boolean progressCreated = ProgressDAO.createProgress(progress) > 0;
+                if (progressCreated) {
+                    session.setAttribute("successMessage", "Enrollment request submitted successfully! Progress initialized at 0%.");
+                } else {
+                    session.setAttribute("errorMessage", "Failed to initialize progress for the enrollment.");
+                }
             } else {
                 session.setAttribute("errorMessage", "Failed to enroll in the course. Please try again.");
             }
