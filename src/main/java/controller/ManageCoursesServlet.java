@@ -34,73 +34,78 @@ public class ManageCoursesServlet extends HttpServlet {
                 return;
             }
             
-            // Get all courses from the database
-            List<Course> courses = CourseDAO.getAllCourses();
-            
-            // Enhanced courses with additional data for the view
-            List<Map<String, Object>> enhancedCourses = new ArrayList<>();
-            
-            // Statistics
-            int totalCourses = courses.size();
-            int activeCourses = 0;
-            int inactiveCourses = 0;
-            int recentCourses = 0;
-            
-            // Calculate one week ago timestamp
-            long oneWeekAgo = System.currentTimeMillis() - 604800000; // 7 days in milliseconds
-            
-            for (Course course : courses) {
-                Map<String, Object> enhancedCourse = new HashMap<>();
+            // Check if the filter has already processed data
+            if (request.getAttribute("enhancedCourses") == null) {
+                // Filter hasn't processed data, so we need to load all courses
                 
-                // Copy all course properties
-                enhancedCourse.put("courseId", course.getCourseId());
-                enhancedCourse.put("courseTitle", course.getCourseTitle());
-                enhancedCourse.put("description", course.getDescription());
-                enhancedCourse.put("duration", course.getDuration());
-                enhancedCourse.put("credits", course.getCredits());
-                enhancedCourse.put("minStudents", course.getMinStudents());
-                enhancedCourse.put("maxStudents", course.getMaxStudents());
-                enhancedCourse.put("cost", course.getCost());
-                enhancedCourse.put("open", course.isOpen());
-                enhancedCourse.put("status", course.getStatus().name());
+                // Get all courses from the database
+                List<Course> courses = CourseDAO.getAllCourses();
                 
-                // Add the level attribute - this was missing
-                enhancedCourse.put("level", course.getLevel().name());
+                // Enhanced courses with additional data for the view
+                List<Map<String, Object>> enhancedCourses = new ArrayList<>();
                 
-                // Get instructor name
-                User instructor = UserDAO.getUserById(course.getInstructorId());
-                enhancedCourse.put("instructorName", instructor != null ? instructor.getFullName() : "Unknown");
+                // Statistics
+                int totalCourses = courses.size();
+                int activeCourses = 0;
+                int inactiveCourses = 0;
+                int recentCourses = 0;
                 
-                // Get enrollment count - add both attributes for compatibility
-                int enrollmentCount = course.getEnrollmentCount();
-                enhancedCourse.put("currentEnrollment", enrollmentCount);
-                enhancedCourse.put("enrollmentCount", enrollmentCount);
+                // Calculate one week ago timestamp
+                long oneWeekAgo = System.currentTimeMillis() - 604800000; // 7 days in milliseconds
                 
-                // Determine last updated date
-                Date lastUpdated = course.getUpdatedAt() != null ? course.getUpdatedAt() : course.getCreatedAt();
-                enhancedCourse.put("lastUpdated", lastUpdated);
-                
-                // Update statistics
-                if (course.isOpen()) {
-                    activeCourses++;
-                } else {
-                    inactiveCourses++;
+                for (Course course : courses) {
+                    Map<String, Object> enhancedCourse = new HashMap<>();
+                    
+                    // Copy all course properties
+                    enhancedCourse.put("courseId", course.getCourseId());
+                    enhancedCourse.put("courseTitle", course.getCourseTitle());
+                    enhancedCourse.put("description", course.getDescription());
+                    enhancedCourse.put("duration", course.getDuration());
+                    enhancedCourse.put("credits", course.getCredits());
+                    enhancedCourse.put("minStudents", course.getMinStudents());
+                    enhancedCourse.put("maxStudents", course.getMaxStudents());
+                    enhancedCourse.put("cost", course.getCost());
+                    enhancedCourse.put("open", course.isOpen());
+                    enhancedCourse.put("status", course.getStatus().name());
+                    
+                    // Add the level attribute - this was missing
+                    enhancedCourse.put("level", course.getLevel().name());
+                    
+                    // Get instructor name
+                    User instructor = UserDAO.getUserById(course.getInstructorId());
+                    enhancedCourse.put("instructorName", instructor != null ? instructor.getFullName() : "Unknown");
+                    
+                    // Get enrollment count - add both attributes for compatibility
+                    int enrollmentCount = course.getEnrollmentCount();
+                    enhancedCourse.put("currentEnrollment", enrollmentCount);
+                    enhancedCourse.put("enrollmentCount", enrollmentCount);
+                    
+                    // Determine last updated date
+                    Date lastUpdated = course.getUpdatedAt() != null ? course.getUpdatedAt() : course.getCreatedAt();
+                    enhancedCourse.put("lastUpdated", lastUpdated);
+                    
+                    // Update statistics
+                    if (course.isOpen()) {
+                        activeCourses++;
+                    } else {
+                        inactiveCourses++;
+                    }
+                    
+                    // Check if course was created within the last week
+                    if (course.getCreatedAt() != null && course.getCreatedAt().getTime() > oneWeekAgo) {
+                        recentCourses++;
+                    }
+                    
+                    enhancedCourses.add(enhancedCourse);
                 }
                 
-                // Check if course was created within the last week
-                if (course.getCreatedAt() != null && course.getCreatedAt().getTime() > oneWeekAgo) {
-                    recentCourses++;
-                }
-                
-                enhancedCourses.add(enhancedCourse);
+                // Add data to the request
+                request.setAttribute("enhancedCourses", enhancedCourses);
+                request.setAttribute("totalCourses", totalCourses);
+                request.setAttribute("activeCourses", activeCourses);
+                request.setAttribute("inactiveCourses", inactiveCourses);
+                request.setAttribute("recentCourses", recentCourses);
             }
-            
-            // Add data to the request
-            request.setAttribute("enhancedCourses", enhancedCourses);
-            request.setAttribute("totalCourses", totalCourses);
-            request.setAttribute("activeCourses", activeCourses);
-            request.setAttribute("inactiveCourses", inactiveCourses);
-            request.setAttribute("recentCourses", recentCourses);
             
             // Forward to the JSP page
             request.getRequestDispatcher("/pages/admin/manage_courses.jsp").forward(request, response);

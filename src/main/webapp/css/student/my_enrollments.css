@@ -15,77 +15,6 @@ body {
     min-height: 100vh;
 }
 
-/* Sidebar Styles */
-.sidebar {
-    width: 250px;
-    background-color: white;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-    position: fixed;
-    height: 100%;
-    z-index: 10;
-}
-
-.logo {
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    font-weight: bold;
-    color: #3478F6;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.logo i {
-    margin-right: 8px;
-    font-size: 24px;
-}
-
-.logo h2 {
-    font-weight: 600;
-    font-size: 20px;
-}
-
-.sidebar-menu {
-    padding: 20px 0;
-}
-
-.sidebar-menu ul {
-    list-style: none;
-}
-
-.sidebar-menu ul li {
-    padding: 10px 20px;
-    margin-bottom: 5px;
-}
-
-.sidebar-menu ul li a {
-    display: flex;
-    align-items: center;
-    color: #555;
-    text-decoration: none;
-    font-size: 15px;
-    transition: all 0.3s ease;
-}
-
-.sidebar-menu ul li a i {
-    margin-right: 10px;
-    width: 20px;
-    text-align: center;
-}
-
-.sidebar-menu ul li.active {
-    background-color: #f0f7ff;
-    border-left: 4px solid #3478F6;
-}
-
-.sidebar-menu ul li.active a {
-    color: #3478F6;
-    font-weight: 500;
-}
-
-.sidebar-menu ul li:hover a {
-    color: #3478F6;
-}
-
 /* Main Content Styles */
 .main-content {
     flex: 1;
@@ -184,22 +113,6 @@ body {
     justify-content: center;
     color: white;
     font-size: 18px;
-}
-
-.document-icon {
-    background-color: #3478F6;
-}
-
-.clock-icon {
-    background-color: #00B894;
-}
-
-.hourglass-icon {
-    background-color: #FDCB6E;
-}
-
-.check-icon {
-    background-color: #5352ED;
 }
 
 /* Search and Filter */
@@ -382,10 +295,6 @@ body {
     background-color: #5352ED;
 }
 
-.course-card:hover .progress.completed {
-    background-image: linear-gradient(to right, #5352ED, #4241d4);
-}
-
 .card-actions {
     display: flex;
     gap: 10px;
@@ -410,10 +319,6 @@ body {
     background-color: #E0E0E0;
 }
 
-.course-card:hover .view-btn:not(:hover) {
-    background-color: #f5f5f5;
-}
-
 .view-btn.primary {
     background-color: #3478F6;
     color: white;
@@ -432,65 +337,6 @@ body {
     background-color: #FFDCE0;
 }
 
-.course-card:hover .cancel-btn:not(:hover) {
-    background-color: #ffeff1;
-}
-
-/* Status-specific hover effects */
-.course-card:hover .status.pending ~ .card-actions .view-btn {
-    background-color: #FDCB6E;
-    color: white;
-}
-
-.course-card:hover .status.rejected ~ .card-actions .view-btn {
-    background-color: #FF4757;
-    color: white;
-}
-
-.course-card:hover .status.active ~ .card-actions .view-btn.primary {
-    background-color: #2967E0;
-}
-
-.course-card:hover .status.completed ~ .card-actions .view-btn.primary {
-    background-color: #4241d4;
-}
-
-/* Add specific colored borders based on course status */
-.course-card:hover {
-    border-left: 4px solid #ccc;
-}
-
-.course-card:hover .status.pending + .instructor {
-    border-left-color: #FDCB6E;
-}
-
-.course-card:hover .status.rejected + .instructor {
-    border-left-color: #FF4757;
-}
-
-.course-card:hover .status.active + .instructor {
-    border-left-color: #00B894;
-}
-
-.course-card:hover .status.completed + .instructor {
-    border-left-color: #5352ED;
-}
-
-/* Enhanced button effects */
-.course-card:hover .card-actions button {
-    transform: scale(1.02);
-}
-
-.course-card:hover .view-btn:hover,
-.course-card:hover .cancel-btn:hover {
-    transform: scale(1.05);
-}
-
-.course-card:hover .cancel-btn:hover {
-    background-color: #ff3a4c;
-    color: white;
-}
-
 /* Responsive Design */
 @media (max-width: 1200px) {
     .stats-container {
@@ -499,19 +345,6 @@ body {
 }
 
 @media (max-width: 900px) {
-    .sidebar {
-        width: 80px;
-        overflow: hidden;
-    }
-    
-    .sidebar .logo h2 {
-        display: none;
-    }
-    
-    .sidebar-menu ul li a span {
-        display: none;
-    }
-    
     .main-content {
         margin-left: 80px;
     }

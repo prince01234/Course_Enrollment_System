@@ -1,4 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,55 +9,260 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduEnroll - My Enrollments</title>
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/student/my_enrollments.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/student_sidebar.css">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Toast notification style */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            min-width: 250px;
+            max-width: 350px;
+            padding: 15px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        
+        .toast-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast-container.success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        
+        .toast-container.error {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .toast-container i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        .toast-message {
+            flex: 1;
+        }
+        
+        .toast-close {
+            cursor: pointer;
+            font-size: 18px;
+            padding-left: 10px;
+        }
+
+        /* Filter dropdown */
+        .filter-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 40px;
+            min-width: 200px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            padding: 15px;
+            z-index: 100;
+        }
+        
+        .filter-dropdown.show {
+            display: block;
+        }
+        
+        .filter-option {
+            padding: 8px 0;
+        }
+        
+        .filter-option label {
+            cursor: pointer;
+            display: block;
+            padding: 5px 0;
+        }
+        
+        .search-filter {
+            position: relative;
+        }
+
+        /* Confirmation modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            text-align: right;
+        }
+
+        /* Empty state styling */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin: 20px 0;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+        
+        .empty-state h3 {
+            font-size: 20px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .empty-state p {
+            color: #777;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            outline: none;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn.primary {
+            background-color: #3478F6;
+            color: white;
+        }
+        
+        .btn.primary:hover {
+            background-color: #2967E0;
+        }
+        
+        .btn.secondary {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .btn.secondary:hover {
+            background-color: #e5e5e5;
+        }
+
+        /* Debug styling */
+        .debug-info {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo">
-                <i class="fas fa-graduation-cap"></i>
-                <h2>EduEnroll</h2>
+    <!-- Toast notification for messages -->
+    <c:if test="${not empty sessionScope.message}">
+        <div id="toast" class="toast-container ${sessionScope.messageType}">
+            <i class="fas ${sessionScope.messageType == 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <div class="toast-message">${sessionScope.message}</div>
+            <span class="toast-close" onclick="closeToast()">&times;</span>
+        </div>
+    </c:if>
+
+    <!-- Confirmation modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-question-circle"></i> Confirm Action</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
             </div>
-            <nav class="sidebar-menu">
-                <ul>
-                    <li>
-                        <a href="<%= request.getContextPath() %>/pages/student/student_dashboard.jsp">
-                            <i class="fas fa-user"></i> Profile
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<%= request.getContextPath() %>/pages/student/browse_courses.jsp">
-                            <i class="fas fa-book"></i> Browse Courses
-                        </a>
-                    </li>
-                    <li class="active">
-                        <a href="<%= request.getContextPath() %>/pages/student/my_enrollments.jsp">
-                            <i class="fas fa-graduation-cap"></i> My Enrollments
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<%= request.getContextPath() %>/pages/student/grades.jsp">
-                            <i class="fas fa-chart-bar"></i> Grades
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<%= request.getContextPath() %>/LogoutServlet">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
+            <div class="modal-body">
+                <p id="modalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <form id="confirmForm" method="post" action="<%= request.getContextPath() %>/MyEnrollmentsServlet">
+                    <input type="hidden" id="enrollmentIdField" name="enrollmentId" value="">
+                    <input type="hidden" id="actionField" name="action" value="">
+                    <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn primary">Confirm</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Include modular sidebar component -->
+        <%@ include file="/pages/components/student_sidebar.jsp" %>
 
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
                 <h1>My Enrollments</h1>
                 <div class="header-icons">
-                    <a href="#" class="notification-icon"><i class="fas fa-bell"></i><span class="badge">2</span></a>
-                    <a href="#" class="profile-icon"><img src="https://via.placeholder.com/40" alt="Profile"></a>
+                    <c:if test="${user != null}">
+                        <span class="user-greeting">Hello, ${fn:escapeXml(user.firstName)}</span>
+                        <a href="#" class="notification-icon">
+                            <i class="fas fa-bell"></i>
+                            <c:if test="${pendingEnrollments > 0}">
+                                <span class="badge">${pendingEnrollments}</span>
+                            </c:if>
+                        </a>
+                        <a href="<%= request.getContextPath() %>/StudentProfileServlet" class="profile-icon">
+                            <c:choose>
+                                <c:when test="${not empty user.profilePicture}">
+                                    <img src="data:image/jpeg;base64,${user.profilePicture}" alt="Profile">
+                                </c:when>
+                                <c:otherwise>
+                                    <img src="<%= request.getContextPath() %>/images/default-profile.png" alt="Profile">
+                                </c:otherwise>
+                            </c:choose>
+                        </a>
+                    </c:if>
                 </div>
             </header>
 
@@ -62,7 +270,7 @@
             <div class="stats-container">
                 <div class="stat-card">
                     <div class="stat-info">
-                        <h2>12</h2>
+                        <h2>${totalEnrollments}</h2>
                         <p>Total Enrollments</p>
                     </div>
                     <div class="stat-icon document-icon">
@@ -71,7 +279,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-info">
-                        <h2>5</h2>
+                        <h2>${activeEnrollments}</h2>
                         <p>Active Courses</p>
                     </div>
                     <div class="stat-icon clock-icon">
@@ -80,7 +288,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-info">
-                        <h2>2</h2>
+                        <h2>${pendingEnrollments}</h2>
                         <p>Pending Requests</p>
                     </div>
                     <div class="stat-icon hourglass-icon">
@@ -89,7 +297,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-info">
-                        <h2>5</h2>
+                        <h2>${completedEnrollments}</h2>
                         <p>Completed Courses</p>
                     </div>
                     <div class="stat-icon check-icon">
@@ -100,97 +308,167 @@
 
             <!-- Search and Filter -->
             <div class="search-filter">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search enrolled courses...">
-                </div>
-                <button class="filter-btn">
+                <form action="<%= request.getContextPath() %>/MyEnrollmentsServlet" method="get">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" name="search" value="${searchTerm}" placeholder="Search enrolled courses...">
+                    </div>
+                </form>
+                <button class="filter-btn" id="filterToggleBtn">
                     <i class="fas fa-filter"></i> Filters
                 </button>
+                <div class="filter-dropdown" id="filterDropdown">
+                    <form action="<%= request.getContextPath() %>/MyEnrollmentsServlet" method="get">
+                        <div class="filter-option">
+                            <h4>Status</h4>
+                            <label><input type="radio" name="status" value="PENDING" ${statusFilter == 'PENDING' ? 'checked' : ''}> Pending</label>
+                            <label><input type="radio" name="status" value="ACTIVE" ${statusFilter == 'ACTIVE' ? 'checked' : ''}> Active</label>
+                            <label><input type="radio" name="status" value="COMPLETED" ${statusFilter == 'COMPLETED' ? 'checked' : ''}> Completed</label>
+                            <label><input type="radio" name="status" value="REJECTED" ${statusFilter == 'REJECTED' ? 'checked' : ''}> Rejected</label>
+                            <label><input type="radio" name="status" value="" ${empty statusFilter ? 'checked' : ''}> All</label>
+                        </div>
+                        <div class="filter-actions">
+                            <button type="submit" class="btn primary">Apply Filters</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Debug info (remove in production) -->
+            <div class="debug-info">
+                <p>Enrollments empty? ${empty enrollments}</p>
+                <p>Enrollments size: ${fn:length(enrollments)}</p>
+                <c:if test="${not empty enrollments && fn:length(enrollments) > 0}">
+                    <p>First enrollment: ${enrollments[0]}</p>
+                </c:if>
             </div>
 
             <!-- Course Cards -->
             <div class="course-list">
-                <!-- Course 1: Pending -->
-                <div class="course-card">
-                    <div class="course-info">
-                        <div class="course-header">
-                            <h3>Advanced Web Development</h3>
-                            <span class="status pending">Pending</span>
+                <c:choose>
+                    <c:when test="${empty enrollments}">
+                        <div class="empty-state">
+                            <i class="fas fa-book-open"></i>
+                            <h3>No enrollments found</h3>
+                            <p>You haven't enrolled in any courses yet.</p>
+                            <a href="<%= request.getContextPath() %>/BrowseCoursesServlet" class="btn primary">Browse Courses</a>
                         </div>
-                        <p class="instructor">Instructor: Dr. John Smith</p>
-                        <p class="credits">3 Credits</p>
-                        <p class="description">Learn advanced concepts of web development including modern frameworks and best practices.</p>
-                        <div class="card-actions">
-                            <button class="view-btn">View Details</button>
-                            <button class="cancel-btn">Cancel Request</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Course 2: Rejected -->
-                <div class="course-card">
-                    <div class="course-info">
-                        <div class="course-header">
-                            <h3>Machine Learning Fundamentals</h3>
-                            <span class="status rejected">Rejected</span>
-                        </div>
-                        <p class="instructor">Instructor: Dr. Sarah Johnson</p>
-                        <p class="credits">4 Credits</p>
-                        <p class="description">Introduction to machine learning algorithms and practical applications.</p>
-                        <div class="card-actions">
-                            <button class="view-btn">View Details</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Course 3: Active -->
-                <div class="course-card">
-                    <div class="course-info">
-                        <div class="course-header">
-                            <h3>Data Structures and Algorithms</h3>
-                            <span class="status active">Active</span>
-                        </div>
-                        <p class="instructor">Instructor: Prof. Michael Chen</p>
-                        <p class="credits">3 Credits</p>
-                        <p class="description">Learn fundamentals of data structures and algorithms.</p>
-                        <div class="progress-bar">
-                            <div class="progress-label">Progress</div>
-                            <div class="progress-percent">60%</div>
-                        </div>
-                        <div class="progress-tracker">
-                            <div class="progress" style="width: 60%"></div>
-                        </div>
-                        <div class="card-actions">
-                            <button class="view-btn primary">View Details</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Course 4: Completed -->
-                <div class="course-card">
-                    <div class="course-info">
-                        <div class="course-header">
-                            <h3>Introduction to Python Programming</h3>
-                            <span class="status completed">Completed</span>
-                        </div>
-                        <p class="instructor">Instructor: Dr. Emily White</p>
-                        <p class="credits">3 Credits</p>
-                        <p class="description">Introduction to Python programming language and its applications.</p>
-                        <div class="progress-bar">
-                            <div class="progress-label">Progress</div>
-                            <div class="progress-percent">100%</div>
-                        </div>
-                        <div class="progress-tracker">
-                            <div class="progress completed" style="width: 100%"></div>
-                        </div>
-                        <div class="card-actions">
-                            <button class="view-btn primary">View Details</button>
-                        </div>
-                    </div>
-                </div>
+                    </c:when>
+                    <c:otherwise>
+                        <c:forEach var="enrollment" items="${enrollments}">
+                            <div class="course-card">
+                                <div class="course-info">
+                                    <div class="course-header">
+                                        <h3>${fn:escapeXml(enrollment.courseTitle)}</h3>
+                                        <span class="status ${fn:toLowerCase(enrollment.status)}">${enrollment.status}</span>
+                                    </div>
+                                    <p class="instructor">Instructor: ${fn:escapeXml(enrollment.instructorName)}</p>
+                                    <p class="credits">${enrollment.credits} Credits</p>
+                                    <p class="description">${fn:escapeXml(enrollment.description)}</p>
+                                    
+                                    <c:if test="${enrollment.status == 'ACTIVE' || enrollment.status == 'COMPLETED'}">
+                                        <div class="progress-bar">
+                                            <div class="progress-label">Progress</div>
+                                            <div class="progress-percent">${enrollment.progress}%</div>
+                                        </div>
+                                        <div class="progress-tracker">
+                                            <div class="progress ${enrollment.status == 'COMPLETED' ? 'completed' : ''}" 
+                                                style="width: ${enrollment.progress}%"></div>
+                                        </div>
+                                    </c:if>
+                                    
+                                    <div class="card-actions">
+                                        <button class="view-btn" onclick="window.location.href='<%= request.getContextPath() %>/ViewCourseDetailsServlet?courseId=${enrollment.courseId}'">
+                                            View Details
+                                        </button>
+                                        
+                                        <c:if test="${enrollment.status == 'PENDING'}">
+                                            <button class="cancel-btn" 
+                                                onclick="showConfirmation(${enrollment.enrollmentId}, 'Are you sure you want to cancel this enrollment request?', 'cancelEnrollment')">
+                                                Cancel Request
+                                            </button>
+                                        </c:if>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </main>
     </div>
+
+    <script>
+        // Display toast notification if message exists
+        document.addEventListener('DOMContentLoaded', function() {
+            const toast = document.getElementById('toast');
+            if (toast) {
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 100);
+                
+                setTimeout(() => {
+                    closeToast();
+                }, 5000);
+            }
+            
+            // Toggle filter dropdown
+            const filterBtn = document.getElementById('filterToggleBtn');
+            const filterDropdown = document.getElementById('filterDropdown');
+            
+            if (filterBtn && filterDropdown) {
+                filterBtn.addEventListener('click', function() {
+                    filterDropdown.classList.toggle('show');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!event.target.closest('.filter-btn') && !event.target.closest('.filter-dropdown')) {
+                        filterDropdown.classList.remove('show');
+                    }
+                });
+            }
+        });
+        
+        // Close toast notification
+        function closeToast() {
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 300);
+                
+                // Clear session message via fetch
+                fetch('<%= request.getContextPath() %>/ClearMessageServlet', {
+                    method: 'POST'
+                });
+            }
+        }
+        
+        // Show confirmation modal
+        function showConfirmation(enrollmentId, message, action) {
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('enrollmentIdField').value = enrollmentId;
+            document.getElementById('actionField').value = action;
+            
+            const modal = document.getElementById('confirmModal');
+            modal.style.display = 'flex';
+        }
+        
+        // Close modal
+        function closeModal() {
+            const modal = document.getElementById('confirmModal');
+            modal.style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('confirmModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
 </body>
 </html>

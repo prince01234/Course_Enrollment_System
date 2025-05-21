@@ -37,7 +37,7 @@ CREATE TABLE Enrollments (
     enrollment_id INT AUTO_INCREMENT PRIMARY KEY,
     student_id INT NOT NULL,
     course_id INT NOT NULL,
-    status ENUM('APPROVED', 'PENDING', 'REJECTED', 'COMPLTED'),
+    status ENUM('APPROVED', 'PENDING', 'REJECTED', 'COMPLETED'),
     enrollment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES users(user_id),
     FOREIGN KEY (course_id) REFERENCES Courses(course_id),

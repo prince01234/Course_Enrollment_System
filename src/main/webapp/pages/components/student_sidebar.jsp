@@ -25,16 +25,16 @@
                     <span>Browse Courses</span>
                 </a>
             </li>
-            <li class="<%= (url.contains("MyCoursesServlet") || url.contains("my_courses.jsp")) ? "active" : "" %>">
-                <a href="<%= request.getContextPath() %>/MyCoursesServlet">
+            <li class="<%= (url.contains("MyEnrollmentsServlet") || url.contains("my_enrollments.jsp")) ? "active" : "" %>">
+                <a href="<%= request.getContextPath() %>/MyEnrollmentsServlet">
                     <i class="fas fa-book-reader"></i>
                     <span>My Courses</span>
                 </a>
             </li>
-            <li class="<%= (url.contains("ProfileServlet") || url.contains("profile.jsp")) ? "active" : "" %>">
-                <a href="<%= request.getContextPath() %>/ProfileServlet">
-                    <i class="fas fa-user"></i>
-                    <span>Profile</span>
+            <li class="<%= (url.contains("GradesServlet") || url.contains("grades.jsp")) ? "active" : "" %>">
+                <a href="<%= request.getContextPath() %>/GradesServlet">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Grades</span>
                 </a>
             </li>
             <!-- Changed from direct link to onclick handler -->

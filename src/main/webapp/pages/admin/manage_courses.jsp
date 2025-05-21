@@ -1,3 +1,4 @@
+<!-- filepath: c:\IIC\Year 2\Ecplise\Course_Enrollment_System\src\main\webapp\pages\admin\manage_courses.jsp -->
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -192,8 +193,22 @@
             <!-- Search and Filter -->
             <div class="search-filter">
                 <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchCourses" placeholder="Search courses..." onkeyup="filterCourses()">
+                    <form action="${pageContext.request.contextPath}/ManageCoursesServlet" method="get" id="searchForm">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchCourses" name="search" value="${searchQuery}" 
+                               placeholder="Search courses..." onkeypress="if(event.key === 'Enter') this.form.submit();">
+                        
+                        <!-- Preserve other filters if they're set -->
+                        <c:if test="${not empty selectedLevel}">
+                            <input type="hidden" name="level" value="${selectedLevel}">
+                        </c:if>
+                        <c:if test="${not empty selectedStatus}">
+                            <input type="hidden" name="status" value="${selectedStatus}">
+                        </c:if>
+                        <c:if test="${not empty selectedDuration}">
+                            <input type="hidden" name="duration" value="${selectedDuration}">
+                        </c:if>
+                    </form>
                 </div>
                 <div class="action-buttons">
                     <button class="filter-btn" onclick="toggleFilters()"><i class="fas fa-filter"></i> Filters</button>
@@ -204,40 +219,47 @@
             </div>
             
             <!-- Filter options (hidden by default) -->
-            <div id="filterOptions" style="display: none; padding: 15px; background-color: #f7f9fc; border-radius: 8px; margin-bottom: 20px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
-                    <div>
-                        <label for="filterLevel" style="display: block; margin-bottom: 5px; font-weight: 600;">Level:</label>
-                        <select id="filterLevel" class="filter-select" style="width: 100%; padding: 8px;">
-                            <option value="">All Levels</option>
-                            <option value="BEGINNER">Beginner</option>
-                            <option value="INTERMEDIATE">Intermediate</option>
-                            <option value="ADVANCED">Advanced</option>
-                        </select>
+            <div id="filterOptions" style="display: ${not empty selectedLevel || not empty selectedStatus || not empty selectedDuration || not empty searchQuery ? 'block' : 'none'}; padding: 15px; background-color: #f7f9fc; border-radius: 8px; margin-bottom: 20px;">
+                <form action="${pageContext.request.contextPath}/ManageCoursesServlet" method="get" id="filterForm">
+                    <!-- Preserve search if it exists -->
+                    <c:if test="${not empty searchQuery}">
+                        <input type="hidden" name="search" value="${searchQuery}">
+                    </c:if>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                        <div>
+                            <label for="filterLevel" style="display: block; margin-bottom: 5px; font-weight: 600;">Level:</label>
+                            <select id="filterLevel" name="level" class="filter-select" style="width: 100%; padding: 8px;">
+                                <option value="">All Levels</option>
+                                <option value="BEGINNER" ${selectedLevel == 'BEGINNER' ? 'selected' : ''}>Beginner</option>
+                                <option value="INTERMEDIATE" ${selectedLevel == 'INTERMEDIATE' ? 'selected' : ''}>Intermediate</option>
+                                <option value="ADVANCED" ${selectedLevel == 'ADVANCED' ? 'selected' : ''}>Advanced</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filterStatus" style="display: block; margin-bottom: 5px; font-weight: 600;">Status:</label>
+                            <select id="filterStatus" name="status" class="filter-select" style="width: 100%; padding: 8px;">
+                                <option value="">All Status</option>
+                                <option value="true" ${selectedStatus == 'true' ? 'selected' : ''}>Active</option>
+                                <option value="false" ${selectedStatus == 'false' ? 'selected' : ''}>Inactive</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filterDuration" style="display: block; margin-bottom: 5px; font-weight: 600;">Duration:</label>
+                            <select id="filterDuration" name="duration" class="filter-select" style="width: 100%; padding: 8px;">
+                                <option value="">All Durations</option>
+                                <option value="0-4" ${selectedDuration == '0-4' ? 'selected' : ''}>0-4 weeks</option>
+                                <option value="5-8" ${selectedDuration == '5-8' ? 'selected' : ''}>5-8 weeks</option>
+                                <option value="9-12" ${selectedDuration == '9-12' ? 'selected' : ''}>9-12 weeks</option>
+                                <option value="13+" ${selectedDuration == '13+' ? 'selected' : ''}>13+ weeks</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label for="filterStatus" style="display: block; margin-bottom: 5px; font-weight: 600;">Status:</label>
-                        <select id="filterStatus" class="filter-select" style="width: 100%; padding: 8px;">
-                            <option value="">All Status</option>
-                            <option value="true">Active</option>
-                            <option value="false">Inactive</option>
-                        </select>
+                    <div style="margin-top: 15px; text-align: right;">
+                        <button type="submit" class="btn-primary" style="padding: 8px 16px;">Apply Filters</button>
+                        <a href="${pageContext.request.contextPath}/ManageCoursesServlet" class="btn-secondary" style="padding: 8px 16px; display: inline-block; text-decoration: none;">Reset</a>
                     </div>
-                    <div>
-                        <label for="filterDuration" style="display: block; margin-bottom: 5px; font-weight: 600;">Duration:</label>
-                        <select id="filterDuration" class="filter-select" style="width: 100%; padding: 8px;">
-                            <option value="">All Durations</option>
-                            <option value="0-4">0-4 weeks</option>
-                            <option value="5-8">5-8 weeks</option>
-                            <option value="9-12">9-12 weeks</option>
-                            <option value="13+">13+ weeks</option>
-                        </select>
-                    </div>
-                </div>
-                <div style="margin-top: 15px; text-align: right;">
-                    <button onclick="applyFilters()" class="btn-primary" style="padding: 8px 16px;">Apply Filters</button>
-                    <button onclick="resetFilters()" class="btn-secondary" style="padding: 8px 16px;">Reset</button>
-                </div>
+                </form>
             </div>
 
             <!-- Course List -->
@@ -462,6 +484,16 @@
                             window.location.pathname;
             window.history.replaceState({}, document.title, cleanUrl);
         }
+        
+        // Show spinner when submitting filter form
+        document.getElementById('filterForm').addEventListener('submit', function() {
+            showSpinner();
+        });
+        
+        // Show spinner when submitting search form
+        document.getElementById('searchForm').addEventListener('submit', function() {
+            showSpinner();
+        });
     });
     
     // Function to close the delete modal
@@ -540,19 +572,21 @@
     }
     
     function applyFilters() {
-        // Implement your filter logic here
-        console.log("Apply filters clicked");
+        showSpinner();
+        document.getElementById('filterForm').submit();
     }
     
     function resetFilters() {
-        // Implement your reset logic here
-        console.log("Reset filters clicked");
+        showSpinner();
+        window.location.href = contextPath + "/ManageCoursesServlet";
     }
     
     function filterCourses() {
-        // Implement your course filtering logic here
-        const searchTerm = document.getElementById('searchCourses').value.toLowerCase();
-        console.log("Filtering courses for:", searchTerm);
+        // Submit search form on Enter key
+        if (event.key === 'Enter') {
+            showSpinner();
+            document.getElementById('searchForm').submit();
+        }
     }
     
     // Function to close view modal
