@@ -161,9 +161,20 @@
                         <span class="notification-badge"><%= pendingCount %></span>
                     </div>
                     <div class="user-profile">
-                        <img src="https://via.placeholder.com/35" alt="User Profile">
-                    </div>
-                </div>
+					    <%
+					        // Get user from session
+					        model.User currentUser = (model.User) session.getAttribute("user");
+					        String profileImageSrc = "";
+					        
+					        if (currentUser != null && currentUser.getProfilePicture() != null) {
+					            profileImageSrc = "data:image/jpeg;base64," + java.util.Base64.getEncoder().encodeToString(currentUser.getProfilePicture());
+					        } else {
+					            profileImageSrc = request.getContextPath() + "/images/profile-placeholder.jpg";
+					        }
+					    %>
+					    <img src="<%= profileImageSrc %>" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+					</div>
+				</div>
             </header>
             
             <!-- Messages -->

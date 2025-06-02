@@ -54,7 +54,10 @@ public class UpdateProfileServlet extends HttpServlet {
                 lastName == null || lastName.trim().isEmpty()) {
                 session.setAttribute("message", "First name and last name are required.");
                 session.setAttribute("messageType", "error");
-                response.sendRedirect(request.getContextPath() + "/pages/student/student_dashboard.jsp");
+                
+                // Redirect based on user role
+                String redirectUrl = getRedirectUrlForRole(currentUser, request.getContextPath());
+                response.sendRedirect(redirectUrl);
                 return;
             }
             
@@ -72,7 +75,10 @@ public class UpdateProfileServlet extends HttpServlet {
                 if (filePart.getSize() > 5 * 1024 * 1024) { // 5 MB limit
                     session.setAttribute("message", "Profile picture must be less than 5MB.");
                     session.setAttribute("messageType", "error");
-                    response.sendRedirect(request.getContextPath() + "/pages/student/student_dashboard.jsp");
+                    
+                    // Redirect based on user role
+                    String redirectUrl = getRedirectUrlForRole(currentUser, request.getContextPath());
+                    response.sendRedirect(redirectUrl);
                     return;
                 }
                 
@@ -102,7 +108,22 @@ public class UpdateProfileServlet extends HttpServlet {
             session.setAttribute("messageType", "error");
         }
         
-        // Redirect back to dashboard
-        response.sendRedirect(request.getContextPath() + "/pages/student/student_dashboard.jsp");
+        // Redirect back to appropriate dashboard based on user role
+        String redirectUrl = getRedirectUrlForRole(currentUser, request.getContextPath());
+        response.sendRedirect(redirectUrl);
+    }
+
+    /**
+     * Helper method to determine the appropriate redirect URL based on user role
+     */
+    private String getRedirectUrlForRole(User user, String contextPath) {
+        if (user.getRole().toString().equals("ADMIN")) {
+            return contextPath + "/AdminDashboardServlet";
+        } else if (user.getRole().toString().equals("USER")) {
+            return contextPath + "/StudentDashboardServlet";
+        } else {
+            // Default fallback
+            return contextPath + "/pages/public/login.jsp";
+        }
     }
 }

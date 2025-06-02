@@ -105,6 +105,53 @@ header .container {
   margin-right: 10px;
 }
 
+/* Navigation Menu - Updated to match about_us.css */
+.main-nav {
+  display: flex;
+  align-items: center;
+}
+
+.main-nav ul {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.main-nav li {
+  margin: 0 15px;
+}
+
+.main-nav a {
+  color: #333;
+  font-weight: 500;
+  position: relative;
+  padding: 5px 0;
+  transition: color 0.3s ease;
+  text-decoration: none;
+}
+
+.main-nav a:hover, 
+.main-nav a.active {
+  color: #000;
+}
+
+.main-nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #000;
+  transition: width 0.3s ease;
+}
+
+.main-nav a:hover::after,
+.main-nav a.active::after {
+  width: 100%;
+}
+
 .auth-buttons .btn {
   margin-left: 10px;
 }
@@ -326,6 +373,17 @@ footer {
   .footer-section {
     width: 50%;
   }
+  
+  header .container {
+    flex-wrap: wrap;
+  }
+  
+  .main-nav {
+    order: 3;
+    width: 100%;
+    margin-top: 15px;
+    justify-content: center;
+  }
 }
 
 @media screen and (max-width: 768px) {
@@ -341,6 +399,15 @@ footer {
     min-width: 100%;
     margin: 20px 0;
   }
+  
+  .main-nav ul {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .main-nav li {
+    margin: 0 10px;
+  }
 }
 
 @media screen and (max-width: 576px) {
@@ -351,7 +418,7 @@ footer {
   .footer-section {
     width: 100%;
   }
-
+						
   .auth-buttons {
     display: flex;
   }

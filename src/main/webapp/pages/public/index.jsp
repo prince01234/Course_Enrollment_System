@@ -9,18 +9,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="logo">
-                <i class="fas fa-graduation-cap"></i>
-                <span>EduEnroll</span>
-            </div>
-            <div class="auth-buttons">
-                <a href="<%= request.getContextPath() %>/pages/public/login.jsp" class="btn btn-dark">Login</a>
-                <a href="<%= request.getContextPath() %>/pages/public/register.jsp" class="btn btn-light">Register</a>
-            </div>
+<header>
+    <div class="container">
+        <div class="logo">
+            <i class="fas fa-graduation-cap"></i>
+            <span>EduEnroll</span>
         </div>
-    </header>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="<%= request.getContextPath() %>/pages/public/index.jsp" class="active">Home</a></li>
+                <li><a href="<%= request.getContextPath() %>/pages/public/about_us.jsp">About Us</a></li>
+                <li><a href="<%= request.getContextPath() %>/pages/public/contact_us.jsp">Contact Us</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <a href="<%= request.getContextPath() %>/pages/public/login.jsp" class="btn btn-dark">Login</a>
+            <a href="<%= request.getContextPath() %>/pages/public/register.jsp" class="btn btn-light">Register</a>
+        </div>
+    </div>
+</header>
 
     <!-- Hero Background Image -->
     <div class="hero-bg"></div>

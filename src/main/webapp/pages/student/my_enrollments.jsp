@@ -241,30 +241,34 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <header class="top-header">
-                <h1>My Enrollments</h1>
-                <div class="header-icons">
-                    <c:if test="${user != null}">
-                        <span class="user-greeting">Hello, ${fn:escapeXml(user.firstName)}</span>
-                        <a href="#" class="notification-icon">
-                            <i class="fas fa-bell"></i>
-                            <c:if test="${pendingEnrollments > 0}">
-                                <span class="badge">${pendingEnrollments}</span>
-                            </c:if>
-                        </a>
-                        <a href="<%= request.getContextPath() %>/StudentProfileServlet" class="profile-icon">
-                            <c:choose>
-                                <c:when test="${not empty user.profilePicture}">
-                                    <img src="data:image/jpeg;base64,${user.profilePicture}" alt="Profile">
-                                </c:when>
-                                <c:otherwise>
-                                    <img src="<%= request.getContextPath() %>/images/default-profile.png" alt="Profile">
-                                </c:otherwise>
-                            </c:choose>
-                        </a>
-                    </c:if>
-                </div>
-            </header>
+			<header class="top-header">
+			    <h1>My Enrollments</h1>
+			    <div class="header-icons">
+			        <c:if test="${user != null}">
+			            <span class="user-greeting">Hello, ${fn:escapeXml(user.firstName)}</span>
+			            <a href="#" class="notification-icon">
+			                <i class="fas fa-bell"></i>
+			                <c:if test="${pendingEnrollments > 0}">
+			                    <span class="badge">${pendingEnrollments}</span>
+			                </c:if>
+			            </a>
+			            <a href="<%= request.getContextPath() %>/StudentProfileServlet" class="profile-icon">
+			                <%
+			                    // Get user from session for profile image
+			                    model.User currentUser = (model.User) session.getAttribute("user");
+			                    String profileImageSrc = "";
+			                    
+			                    if (currentUser != null && currentUser.getProfilePicture() != null) {
+			                        profileImageSrc = "data:image/jpeg;base64," + java.util.Base64.getEncoder().encodeToString(currentUser.getProfilePicture());
+			                    } else {
+			                        profileImageSrc = request.getContextPath() + "/images/default-profile.png";
+			                    }
+			                %>
+			                <img src="<%= profileImageSrc %>" alt="Profile" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+			            </a>
+			        </c:if>
+			    </div>
+			</header>
 
             <!-- Stats Cards -->
             <div class="stats-container">
@@ -334,14 +338,6 @@
                 </div>
             </div>
             
-            <!-- Debug info (remove in production) -->
-            <div class="debug-info">
-                <p>Enrollments empty? ${empty enrollments}</p>
-                <p>Enrollments size: ${fn:length(enrollments)}</p>
-                <c:if test="${not empty enrollments && fn:length(enrollments) > 0}">
-                    <p>First enrollment: ${enrollments[0]}</p>
-                </c:if>
-            </div>
 
             <!-- Course Cards -->
             <div class="course-list">

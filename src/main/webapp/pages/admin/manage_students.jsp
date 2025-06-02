@@ -25,8 +25,19 @@
                         <i class="fas fa-bell"></i>
                     </div>
                     <div class="profile-image">
-                        <img src="https://via.placeholder.com/40" alt="Profile">
-                    </div>
+				    <%
+				        // Get user from session
+				        model.User currentUser = (model.User) session.getAttribute("user");
+				        String profileImageSrc = "";
+				        
+				        if (currentUser != null && currentUser.getProfilePicture() != null) {
+				            profileImageSrc = "data:image/jpeg;base64," + java.util.Base64.getEncoder().encodeToString(currentUser.getProfilePicture());
+				        } else {
+				            profileImageSrc = request.getContextPath() + "/images/profile-placeholder.jpg";
+				        }
+				    %>
+				    <img src="<%= profileImageSrc %>" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+				</div>
                 </div>
             </div>
 

@@ -1,4 +1,3 @@
-<!-- filepath: c:\IIC\Year 2\Ecplise\Course_Enrollment_System\src\main\webapp\pages\admin\manage_courses.jsp -->
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -19,21 +18,7 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/toggleStatus.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-        /* Loading spinner */
-        .spinner {
-            display: none;
-            width: 40px;
-            height: 40px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            margin-top: -20px;
-            margin-left: -20px;
-            border: 4px solid rgba(0,0,0,0.1);
-            border-radius: 50%;
-            border-top: 4px solid #4361ee;
-            animation: spin 1s linear infinite;
-        }
+
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -134,16 +119,20 @@
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
                     </div>
-                    <div class="profile-pic">
-                        <c:choose>
-                            <c:when test="${not empty sessionScope.user.profilePicture}">
-                                <img src="data:image/jpeg;base64,${Base64.getEncoder().encodeToString(sessionScope.user.profilePicture)}" alt="${sessionScope.user.fullName}">
-                            </c:when>
-                            <c:otherwise>
-                                <img src="<%= request.getContextPath() %>/images/profile-placeholder.jpg" alt="Profile">
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
+				<div class="profile-pic">
+				    <%
+				        // Get user from session
+				        model.User currentUser = (model.User) session.getAttribute("user");
+				        String profileImageSrc = "";
+				        
+				        if (currentUser != null && currentUser.getProfilePicture() != null) {
+				            profileImageSrc = "data:image/jpeg;base64," + java.util.Base64.getEncoder().encodeToString(currentUser.getProfilePicture());
+				        } else {
+				            profileImageSrc = request.getContextPath() + "/images/profile-placeholder.jpg";
+				        }
+				    %>
+				    <img src="<%= profileImageSrc %>" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+				</div>
                 </div>
             </div>
 
@@ -389,22 +378,36 @@
         addBtn.addEventListener('click', openModal);
         closeBtn.addEventListener('click', closeModal);
         
-        // Delete button event listeners 
+        // Delete button event listeners - IMPROVED
         document.querySelectorAll('.action-btn.delete').forEach(btn => {
             btn.addEventListener('click', function() {
                 const courseId = this.getAttribute('data-course-id');
-                console.log("Delete clicked for course ID:", courseId);
+                const courseTitle = this.getAttribute('data-course-title');
+                console.log("Delete clicked for course ID:", courseId, "Title:", courseTitle);
                 
                 // Set the hidden input value for the form
-                document.getElementById('courseIdToDelete').value = courseId;
+                const courseIdField = document.getElementById('courseIdToDelete');
+                if (!courseIdField) {
+                    console.error("Could not find courseIdToDelete field");
+                    return;
+                }
+                courseIdField.value = courseId;
                 
-                // Generic confirmation message without course name
-                document.getElementById('deleteConfirmText').textContent = 
-                    "Are you sure you want to delete this course?";
+                // Set confirmation message with course title
+                const confirmText = document.getElementById('deleteConfirmText');
+                if (confirmText) {
+                    if (courseTitle && courseTitle.trim() !== '') {
+                        confirmText.textContent = "Are you sure you want to delete this course?";
+                    } else {
+                        confirmText.textContent = "Are you sure you want to delete this course?";
+                    }
+                }
                 
                 // Show the delete confirmation modal
-                deleteModal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
+                if (deleteModal) {
+                    deleteModal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }
             });
         });
         
@@ -432,9 +435,13 @@
         });
         
         // Show spinner when submitting delete form
-        document.getElementById('deleteForm').addEventListener('submit', function() {
-            showSpinner();
-        });
+        const deleteForm = document.getElementById('deleteForm');
+        if (deleteForm) {
+            deleteForm.addEventListener('submit', function() {
+                console.log("Submitting delete form");
+                showSpinner();
+            });
+        }
         
         // Show spinner when submitting add course form
         document.getElementById('addCourseForm').addEventListener('submit', function() {
@@ -498,10 +505,18 @@
     
     // Function to close the delete modal
     function closeDeleteModal() {
-        document.getElementById('deleteModal').style.display = 'none';
-        document.body.style.overflow = 'auto';
-        // Reset form for safety
-        document.getElementById('deleteForm').reset();
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            console.log("Closing delete modal");
+            deleteModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            
+            // Reset form for safety
+            const deleteForm = document.getElementById('deleteForm');
+            if (deleteForm) {
+                deleteForm.reset();
+            }
+        }
     }
     
     // Spinner functions
@@ -562,7 +577,7 @@
     // Function for edit course
     function editCourse(courseId) {
         showSpinner();
-        window.location.href = contextPath + "/EditCourseServlet?courseId=" + courseId;
+        window.location.href = contextPath + "/EditCourseServlets?courseId=" + courseId;
     }
     
     // Filter functions

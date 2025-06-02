@@ -27,6 +27,8 @@
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/admin_sidebar.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/update_password.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/update_profile.css">
+        <!-- Add delete account CSS -->
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/components/delete_account.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -123,9 +125,10 @@
                             </div>
                         </div>
                         <div class="detail-item delete-account">
-                            <button class="btn btn-danger" onclick="confirmDelete()">
-                                <i class="fas fa-trash"></i> Delete Account
-                            </button>
+					<button class="btn btn-danger" onclick="showDeleteModal('<%= user.getUserId() %>', 'Are you sure you want to permanently delete your account? This will remove all your course enrollments and data.', '<%= request.getContextPath() %>/DeleteAccountServlet', {title: 'Delete Your Account', buttonText: 'Delete My Account', isAccountDeletion: true, params: {confirmDelete: 'true'}})">
+                        <i class="fas fa-trash-alt"></i>
+                        Delete Account
+                    </button>
                         </div>
                     </div>
                 </div>
@@ -186,12 +189,7 @@
     <!-- Include the profile update modal -->
     <%@ include file="/pages/components/update_profile.jsp" %>
 
-    <script>
-    function confirmDelete() {
-        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            location.href = '<%= request.getContextPath() %>/DeleteAccountServlet';
-        }
-    }
-    </script>
+    <!-- Include the delete account modal -->
+    <%@ include file="/pages/components/delete_account.jsp" %>
 </body>
 </html>
